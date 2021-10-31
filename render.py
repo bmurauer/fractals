@@ -96,6 +96,8 @@ def render_flames(animation_filename: str, sq_dir: str) -> None:
     kwargs = {
         '--in': animation_filename,
         '--begin': begin,
+        '--quality': 5000,
+        '--supersample': 4,
     }
     animate_parameters = flags + [f'{k}={v}' for k, v in kwargs.items()]
     animate_command = ['emberanimate'] + animate_parameters
