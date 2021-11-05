@@ -12,9 +12,10 @@ import subprocess as sp
 import xml.etree.ElementTree as ET
 import re
 import logging
-from typing import List
+from typing import List, Tuple
 import shutil
 import numpy as np
+from textwrap import wrap
 
 
 logger = logging.getLogger('Logger')
@@ -89,6 +90,7 @@ def render_flames(animation_filename: str, sq_dir: str) -> None:
     animate_parameters = flags + [f'{k}={v}' for k, v in kwargs.items()]
     animate_command = ['emberanimate'] + animate_parameters
     logger.debug('rendering flames of %s', animation_filename)
+    logger.debug('command used for rendering: %s', str(animate_command))
     sp.Popen(animate_command, stdout=sp.PIPE).communicate()
 
 
@@ -114,45 +116,62 @@ def interpolate_flames(f0: ET.Element, f1: ET.Element, interpframes: int,
     render_flames(animation_filename, sq_dir)
 
 
-def mutate_float(value_as_str: str) -> str:
-    value = float(value_as_str)
-    return str(value + random.uniform(-0.1, 0.1))
+def mutate_float(value_as_str: str, mutation_range: Tuple[float, float]) -> str:
+    return str(float(value_as_str) + random.uniform(*mutation_range))
 
 
-def mutate_coefs(value: str) -> str:
+def rotate(coefs: np.ndarray, deg: float) -> np.ndarray:
+    rad = math.pi * deg / 180.0
+    return coefs.dot(np.array([
+        [math.cos(rad), -math.sin(rad), 0],
+        [math.sin(rad), math.cos(rad), 0],
+        [0, 0, 1]
+    ]))
 
-    def rotate(coefs: np.ndarray, deg: float) -> np.ndarray:
-        rad = math.pi * deg / 180.0
-        return coefs.dot(np.array([
-            [math.cos(rad), -math.sin(rad), 0],
-            [math.sin(rad), math.cos(rad), 0],
-            [0, 0, 1]
-        ]))
 
-    def scale(coefs: np.ndarray, factor) -> np.ndarray:
-        return coefs.dot(np.array([
-            [factor, 0, 0],
-            [0, factor, 0],
-            [0, 0, 1]
-        ]))
+def scale(coefs: np.ndarray, factor) -> np.ndarray:
+    return coefs.dot(np.array([
+        [factor, 0, 0],
+        [0, factor, 0],
+        [0, 0, 1]
+    ]))
 
-    def translate(coefs: np.ndarray, x, y) -> np.ndarray:
-        return coefs.dot(np.array([
-            [1, 0, x],
-            [0, 1, y],
-            [0, 0, 1],
-        ]))
 
+def translate(coefs: np.ndarray, x, y) -> np.ndarray:
+    return coefs.dot(np.array([
+        [1, 0, x],
+        [0, 1, y],
+        [0, 0, 1],
+    ]))
+
+
+def mutate_coefs(
+    value: str,
+    coef_scale_range,
+    coef_rotation_range,
+    coef_translation_range
+) -> str:
     coefficients = np.array([float(v) for v in value.split(' ')]).reshape(3, 2).T
     coefficients = translate(coefficients,
-                             random.uniform(-0.1, 0.1),
-                             random.uniform(-0.1, 0.1))
-    coefficients = scale(coefficients, random.uniform(0.9, 1.1))
-    coefficients = rotate(coefficients, random.uniform(0, 90))
+                             random.uniform(*coef_translation_range),
+                             random.uniform(*coef_translation_range))
+    coefficients = scale(coefficients, random.uniform(*coef_scale_range))
+    coefficients = rotate(coefficients, random.uniform(*coef_rotation_range))
     return " ".join([str(c)[:6] for c in coefficients.T.flatten()])
 
 
-def mutate_flame(original: ET.Element) -> ET.Element:
+def mutate_flame(
+    original: ET.Element,
+    coef_translation_range=(-0.1, 1.0),
+    coef_rotation_range=(0, 90),
+    coef_scale_range=(0.9, 1.1),
+    post_translation_range=(-0.1, 1.0),
+    post_rotation_range=(0, 90),
+    post_scale_range=(0.9, 1.1),
+    color_range=(0, 1),
+    variation_range=(-0.1, 0.1),
+    variation_range_map=None,
+) -> ET.Element:
     mutation = copy.deepcopy(original)
     for xform in mutation.findall('xform')[-1:]:
         ignored_properties = [
@@ -160,15 +179,29 @@ def mutate_flame(original: ET.Element) -> ET.Element:
             'symmetry',
             'name',
             'animate',
-            'color',
             'opacity',
             'coefs',  # special format
+            'post',
         ] + [k for k in xform.attrib.keys() if k.endswith('_power')]  # integers
-        xform.attrib['coefs'] = mutate_coefs(xform.attrib['coefs'])
-        xform.attrib['color'] = str(random.uniform(0, 1))
+        xform.attrib['coefs'] = mutate_coefs(
+            xform.attrib['coefs'],
+            coef_scale_range,
+            coef_rotation_range,
+            coef_translation_range
+        )
+        if "post" in xform.attrib.keys():
+            xform.attrib['post'] = mutate_coefs(
+                xform.attrib['post'],
+                post_scale_range,
+                post_rotation_range,
+                post_translation_range
+            )
         for key, value in xform.attrib.items():
             if key not in ignored_properties:
-                xform.attrib[key] = mutate_float(value)
+                var_range = variation_range
+                if variation_range_map and key in variation_range_map:
+                    var_range = variation_range_map[key]
+                xform.attrib[key] = mutate_float(value, var_range)
     return mutation
 
 
@@ -183,15 +216,15 @@ def animate_mutation_sequence(original_flame: ET.Element, steps: int,
     movie_file = f"mut-{flame_name}.mp4"
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
     mut_dir = f'mut-{flame_name}-{timestamp}'
+    if not os.path.isdir(mut_dir):
+        os.makedirs(mut_dir)
+    os.chdir(mut_dir)
     if not os.path.isfile(original_file):
         # the embergenome command can't mutate a specific flame, it will always pick a
         # random flame from a file. Therefore, the flame has to be in a separate file.
         ET.ElementTree(original_flame).write(original_file)
-    logger.info('animating mutation sequence for flame %, using %d steps.',
+    logger.info('animating mutation sequence for flame %s, using %d steps.',
                 flame_name, steps)
-    if not os.path.isdir(mut_dir):
-        os.makedirs(mut_dir)
-    os.chdir(mut_dir)
 
     # --- STEP 2: generate mutations
     mutations = [original_flame]
@@ -199,7 +232,9 @@ def animate_mutation_sequence(original_flame: ET.Element, steps: int,
         mutation_flame = mutate_flame(original_flame)
         mutation_flame.attrib["name"] = f"mutation-{step}"
         mutations.append(mutation_flame)
-    mutations.append(original_flame)
+    original_clone = copy.deepcopy(original_flame)
+    original_clone.attrib['name'] = "original-1"
+    mutations.append(original_clone)
     if not os.path.isfile(collected_file):
         create_keyframes_file(collected_file, mutations)
 
@@ -241,6 +276,51 @@ def combine_pngs_to_mp4(output_filename: str, pngs: List[str]):
     shutil.rmtree(tmpdir.name)
 
 
+def rotate_palette(string: str, steps: int):
+    result = ''.join([x.strip() for x in string.split('\n')])
+    for i in range(steps):
+        # one step consists of 6 hex digits (for RGB)
+        result = result[6:] + result[:6]
+    return "".join([f'\n      {x}' for x in wrap(result, 48)]) + "\n"
+
+
+def color_rotate(flame: ET.Element, frames: int):
+
+    # --- STEP 1: preparation stuff
+    flame_name = flame.attrib['name']
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
+    animation_dir = f'color-{flame_name}-{timestamp}'
+    if not os.path.isdir(animation_dir):
+        os.makedirs(animation_dir)
+    flame.attrib['time'] = str(0)
+
+    collection = ET.Element('flames')
+    collection.append(copy.deepcopy(flame))
+    # calculate how much color needs to be added with each frame
+    logger.info('creating %d frames for color rotation of %s', frames, flame_name)
+    last_rotation = 0
+    for i in range(frames):
+        clone = copy.deepcopy(flame)
+        clone.attrib['time'] = str(i+1)
+        palette = clone.find('palette')
+
+        full_rotation = float(palette.attrib['count'])
+        rotation_steps = i * full_rotation / frames
+        palette.text = rotate_palette(palette.text, round(rotation_steps))
+        collection.append(clone)
+
+    animation_file = os.path.join(animation_dir, 'frames.flame')
+    logger.debug('creating keyframes file: %s', animation_file)
+    ET.ElementTree(collection).write(animation_file)
+
+    logger.info('rendering frames')
+    render_flames(animation_file, animation_dir)
+    pngs = sorted(glob(animation_dir + '/*.png'))
+
+    logger.info('combining pngs to mp4')
+    combine_pngs_to_mp4(os.path.join(animation_dir, f"mut-{flame_name}.mp4"), pngs)
+
+
 def get_flame_from_file(file_name: str, flame_name: str, flame_idx: int) -> ET.Element:
     root = ET.parse(file_name).getroot()
 
@@ -269,7 +349,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("method")
     parser.add_argument("inputfile")
-    parser.add_argument("-fi", "--flame-index")
+    parser.add_argument("-fi", "--flame-index", type=int, default=0)
     parser.add_argument("-fn", "--flame-name")
     parser.add_argument("-s", "--steps", type=int, default=5)
     parser.add_argument("-v", "--verbose", action="store_true")
@@ -285,6 +365,9 @@ if __name__ == '__main__':
         animate_mutation_sequence(flame, args.steps, args.interpframes)
     elif args.method == "interpolate":
         interpolate_flame_collection(args.inputfile, args.interpframes)
+    elif args.method == "colorrotate":
+        flame = get_flame_from_file(args.inputfile, args.flame_name, args.flame_index)
+        color_rotate(flame, args.interpframes)
     else:
         logger.error('unknown method: %s', args.method)
         sys.exit(1)
