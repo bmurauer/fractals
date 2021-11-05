@@ -57,7 +57,6 @@ if __name__ == '__main__':
         xml = get_flame_from_file(args.inputfile, args.flame_name, args.flame_index)
         flame = Flame.from_element(xml)
         flames = flame.rotate_colors(args.interpframes)
-        flames.quality = 100
         flames.render()
         flames.convert_to_movie()
     else:
