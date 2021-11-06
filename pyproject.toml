@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "fractals"
+version = "0.1.0"
+description = "Manipulates flame files for animations"
+authors = ["Benjamin Murauer <b.murauer@posteo.de>"]
+
+[tool.poetry.dependencies]
+python = ">=3.9,<3.11"
+numpy = "^1.21.4"
+click = "^8.0.3"
+
+[tool.poetry.dev-dependencies]
+black = "^21.10b0"
+isort = "^5.10.0"
+pytest = "^6.2.5"
+
+[tool.poetry.scripts]
+colorrotate = "cli.colorrotate:colorrotate"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
