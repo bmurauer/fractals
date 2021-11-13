@@ -1,6 +1,7 @@
 import logging
 import random
 import xml.etree.ElementTree as ET
+from typing import Optional
 
 logger = logging.getLogger("Logger")
 logger.setLevel(logging.INFO)
@@ -12,7 +13,9 @@ consoleHandler.setFormatter(formatter)
 logger.addHandler(consoleHandler)
 
 
-def get_flame_from_file(file_name: str, flame_name: str, flame_idx: int) -> ET.Element:
+def get_flame_from_file(
+    file_name: str, flame_name: Optional[str], flame_idx: Optional[int]
+) -> ET.Element:
     root = ET.parse(file_name).getroot()
 
     if flame_name:

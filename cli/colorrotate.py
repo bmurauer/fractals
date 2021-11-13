@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import click
-from fractals.flame import Flame
+from fractals.flame import Flame, Transform
 from render import get_flame_from_file
 
 
@@ -18,7 +18,7 @@ from render import get_flame_from_file
 )
 @click.option(
     "-f",
-    "--frames",
+    "--n_frames",
     default=1000,
     help="how many frames to render. The more frames, the slower the animation.",
 )
@@ -26,11 +26,14 @@ def colorrotate(
     inputfile: str,
     flame_index: int,
     flame_name: str,
-    frames: int,
+    n_frames: int,
 ):
+
     xml = get_flame_from_file(inputfile, flame_name, flame_index)
     flame = Flame.from_element(xml)
-    flames = flame.rotate_colors(frames)
+    flame.xforms[1].coefs.fully_rotate_linear(1)
+    flame.xforms[2].coefs.fully_rotate_linear(2)
+    flames = flame.animate(n_frames=n_frames)
     flames.render()
     flames.convert_to_movie()
 

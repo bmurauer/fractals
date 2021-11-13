@@ -1,7 +1,8 @@
 import unittest
 import xml.etree.ElementTree as ET
 
-from fractals.flame import Color, Flame, Palette, Transform, XForm
+from fractals.flame import (AnimationValue, Color, Flame, Palette, Transform,
+                            XForm)
 
 
 def create_test_palette() -> Palette:
@@ -17,8 +18,8 @@ def create_test_palette() -> Palette:
 def create_test_xform() -> XForm:
     xform = XForm(
         element=ET.Element("xform"),
-        coefs=Transform("1 0 0 0 1 0"),
-        color=0.0,
+        coefs=AnimationValue(Transform("1 0 0 0 1 0")),
+        color=AnimationValue(0.0),
     )
     xform.element.attrib["linear"] = str(1.0)
     return xform
