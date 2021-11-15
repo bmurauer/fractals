@@ -40,7 +40,7 @@
    </palette>
 </flame>
 <flame version="EMBER-LNX-22.21.4.2" time="1" name="001" size="2560 1440" center="0.210823 -0.726778" scale="349.316" rotate="0" supersample="2" filter="0.4" filter_shape="gaussian" temporal_filter_type="box" temporal_filter_width="1" quality="1000" temporal_samples="100" sub_batch_size="10240" fuse="15" rand_range="1" background="0 0 0" brightness="4" gamma="4" highlight_power="1" logscale_k2="0" vibrancy="1" estimator_radius="9" estimator_minimum="0" estimator_curve="0.4" gamma_threshold="0.04" cam_zpos="0" cam_persp="0" cam_yaw="0" cam_pitch="0" cam_dof="0" blur_curve="0" palette_mode="linear" interpolation="linear" interpolation_type="log" plugins="linear sinusoidal flatten spherical" new_linear="1" curves="0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 " overall_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 " red_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 " green_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 " blue_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 ">
-   <xform weight="0.724759" color="0" var_color="1" color_speed="0.2" symmetry="0.6" name="" animate="1" linear="0.960335" sinusoidal="0.0396648" flatten="1" coefs="-0.188282 -0.783136 0.783136 -0.188282 0.750766 -0.329907" opacity="1"/>
+   <xform weight="0.724759" color="0" var_color="1" color_speed="0.2" symmetry="0.6" name="" animate="1" linear="0.960335" sinusoidal="0.0396648" flatten="1" coefs="-0.114996 -0.7972 0.7972 -0.114996 0.734099 -0.282685" opacity="1"/>
    <xform weight="0.275241" color="1" var_color="0.7" color_speed="0.5" symmetry="0" name="" animate="1" linear="0.305708" spherical="0.794292" flatten="1" coefs="-0.247103 -0.087768 -0.069073 -0.256396 -0.209368 -0.409796" opacity="1"/>
    <palette count="256" format="RGB">
       CB4112983D22622C2A512B3839243729292B212224261B17
@@ -77,9 +77,9 @@
       E24707F24700FD4F08F44E12F44C25773B33B64330F25109
    </palette>
 </flame>
-<flame version="EMBER-LNX-22.21.4.2" time="2" name="002" size="2560 1440" center="0.210823 -0.726778" scale="306.379" rotate="0" supersample="2" filter="0.4" filter_shape="gaussian" temporal_filter_type="box" temporal_filter_width="1" quality="1000" temporal_samples="100" sub_batch_size="10240" fuse="15" rand_range="1" background="0 0 0" brightness="4" gamma="4" highlight_power="1" logscale_k2="0" vibrancy="1" estimator_radius="9" estimator_minimum="0" estimator_curve="0.4" gamma_threshold="0.04" cam_zpos="0" cam_persp="0" cam_yaw="0" cam_pitch="0" cam_dof="0" blur_curve="0" palette_mode="linear" interpolation="smooth" interpolation_type="log" plugins="linear sinusoidal flatten spherical" new_linear="1" curves="0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 " overall_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 " red_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 " green_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 " blue_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 ">
+<flame version="EMBER-LNX-22.21.4.2" time="2" name="002" size="2560 1440" center="0.210823 -0.726778" scale="310" rotate="0" supersample="2" filter="0.4" filter_shape="gaussian" temporal_filter_type="box" temporal_filter_width="1" quality="1000" temporal_samples="100" sub_batch_size="10240" fuse="15" rand_range="1" background="0 0 0" brightness="4" gamma="4" highlight_power="1" logscale_k2="0" vibrancy="1" estimator_radius="9" estimator_minimum="0" estimator_curve="0.4" gamma_threshold="0.04" cam_zpos="0" cam_persp="0" cam_yaw="0" cam_pitch="0" cam_dof="0" blur_curve="0" palette_mode="linear" interpolation="smooth" interpolation_type="log" plugins="linear sinusoidal flatten spherical bubble" new_linear="1" curves="0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 " overall_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 " red_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 " green_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 " blue_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 ">
    <xform weight="0.724759" color="0" var_color="1" color_speed="0.5" symmetry="0" name="" animate="1" linear="0.960335" sinusoidal="0.0396648" flatten="1" coefs="-0.188282 -0.783136 0.783136 -0.188282 0.750766 -0.329907" opacity="1"/>
-   <xform weight="0.275241" color="1" var_color="1" color_speed="0.5" symmetry="0" name="" animate="1" linear="0.305708" spherical="0.694292" flatten="1" coefs="-0.247103 -0.087768 -0.069073 -0.256396 -0.209368 -0.409796" opacity="1"/>
+   <xform weight="0.275241" color="1" var_color="1" color_speed="0.5" symmetry="0" name="" animate="1" linear="0.305708" spherical="0.694292" bubble="0.5" flatten="1" coefs="-0.248803 -0.0828254 -0.0741697 -0.254968 -0.209368 -0.409796" opacity="1"/>
    <palette count="256" format="RGB">
       8000009300009C0000A60000AF0000B90000BD0000C20000
       D41717DA2E2EE04545E65C5CEC7474F28B8BF8A2A2FBB0B0
@@ -156,45 +156,45 @@
       3C565C3D615C406B5E3D66613868683A736E3B81753C917E
    </palette>
 </flame>
-<flame version="EMBER-LNX-22.21.4.2" time="4" name="004" size="2560 1440" center="0 0" scale="431" rotate="-45" supersample="2" filter="0.5" filter_shape="gaussian" temporal_filter_type="box" temporal_filter_width="1" quality="1000" temporal_samples="100" sub_batch_size="10240" fuse="15" rand_range="1" background="0 0 0" brightness="30" gamma="3" highlight_power="1" logscale_k2="0" vibrancy="1" estimator_radius="9" estimator_minimum="0" estimator_curve="0.4" gamma_threshold="0.01" cam_zpos="0" cam_persp="0" cam_yaw="0" cam_pitch="0" cam_dof="0" blur_curve="0" palette_mode="linear" interpolation="smooth" interpolation_type="log" plugins="pre_gaussian_blur bubble julian flatten" new_linear="1" curves="0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 " overall_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 " red_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 " green_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 " blue_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 ">
-   <xform weight="0.5" color="1" var_color="1" color_speed="0.5" symmetry="0" name="" animate="1" pre_gaussian_blur="10" bubble="0.2" coefs="0.739647 0 0 0.739647 0 0" opacity="1"/>
-   <xform weight="6" color="0" var_color="1" color_speed="0.5" symmetry="0" name="" animate="1" julian="1" julian_dist="-1" julian_power="2" flatten="1" coefs="1.09047 -1.02902 1.02902 1.09047 -0.515952 -0.867547" opacity="1"/>
-   <xform weight="1" color="0.5" var_color="1" color_speed="0.5" symmetry="0" name="" animate="1" julian="0.2" julian_dist="-1" julian_power="5" flatten="1" coefs="0.707107 -0.707107 0.707107 0.707107 0 0" opacity="1"/>
-   <xform weight="1" color="0.75" var_color="1" color_speed="0.5" symmetry="0" name="" animate="1" julian="0.3" julian_dist="-1" julian_power="2" flatten="1" coefs="0.707107 -0.707107 0.707107 0.707107 0 0" opacity="1"/>
-   <xform weight="6" color="0" var_color="1" color_speed="0.5" symmetry="0" name="" animate="1" julian="1" julian_dist="-1" julian_power="2" flatten="1" coefs="-0.292571 -1.18677 1.18677 -0.292571 1.46186 1.47143" opacity="1"/>
+<flame version="EMBER-LNX-22.21.4.2" time="4" name="004" size="2560 1440" center="-0.617504 -0.236679" scale="331" zoom="1.4" rotate="-45" supersample="2" filter="0" filter_shape="gaussian" temporal_filter_type="box" temporal_filter_width="1" quality="1000" temporal_samples="100" sub_batch_size="10240" fuse="15" rand_range="1" background="0 0 0" brightness="4.01" gamma="2.5" highlight_power="1" logscale_k2="0" vibrancy="1" estimator_radius="9" estimator_minimum="0" estimator_curve="0.4" gamma_threshold="0" cam_zpos="0" cam_persp="0" cam_yaw="0" cam_pitch="0" cam_dof="0" blur_curve="0" palette_mode="linear" interpolation="smooth" interpolation_type="log" plugins="julian tanh_spiral blur_linear" new_linear="1" curves="0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 " overall_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 " red_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 " green_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 " blue_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 ">
+   <xform weight="0.2" color="0" var_color="1" color_speed="0.5" symmetry="0" name="" animate="1" julian="1" julian_dist="-1" julian_power="3" coefs="1 1.74846e-07 -1.74846e-07 1 -0.171561 -0.146186" opacity="1"/>
+   <xform weight="0.2" color="0.5" var_color="1" color_speed="0.5" symmetry="0" name="" animate="1" julian="0.45" julian_dist="-1" julian_power="5" coefs="1 5.96046e-08 -5.96046e-08 1 0.247222 0.00277781" opacity="1"/>
+   <xform weight="0.2" color="0.75" var_color="1" color_speed="0.5" symmetry="0" name="" animate="1" julian="0.1" julian_dist="-1" julian_power="2" coefs="1 0 0 1 0 0" opacity="1"/>
+   <xform weight="0.2" color="0.32549" var_color="1" color_speed="0.2" symmetry="0.6" name="" animate="1" julian="0.1" julian_dist="-1" julian_power="12" coefs="0.987574 0.157157 -0.157157 0.987574 -0.414039 -0.269532" opacity="1"/>
+   <xform weight="0.25" color="1" var_color="1" color_speed="0.5" symmetry="0" name="" animate="1" tanh_spiral="10" tanh_spiral_a="4" blur_linear="0.0351" blur_linear_length="0" blur_linear_angle="0" coefs="-1.19209e-07 2.44141 -2.44141 -1.19209e-07 0.0589444 -0.0242094" opacity="1"/>
    <palette count="256" format="RGB">
-      18131A2D1F29432D337A1F2C901F27911D25921E23961E24
-      901E24852123452D2C2F2228231D241F191E1B171B1A151A
-      1B161C1E1821201C22252229302B2F3B3538534D495F4D45
-      7B5A4D826D587C7462948E70B0A478C9C099D6D0C2E4DECE
-      E6E0CDE6E1C9E6DDCAE5D5BEDBBE9EB0986F8D6D53984945
-      9C3A35927D5EB6957BDACD90E5D8BFE6DECDE6E0DAE6E2DB
-      E4E2DCE6E3DDE8E4D9ECE8CCE9E7BFE6DEC7E5DBC8D9D4C6
-      DDD1B5C7A8919C7F7D5C4A514532333728322922281D1D22
-      17182015181D16151C18141B1E151D25191D2D1920381E22
-      6C1D268E1E27952225962024941E24921D248E1D23881F24
-      4832353F2F323B3030392D313F30334E373A5C504C7E705F
-      A79375CEA08ECCC3A8D6CEBEAC9B8E92827B735F585A4A51
-      3D363837283431282B2E292D2C2A2E2E2A2E2E26282A2925
-      252121221B1B1F171C1D1517191217180D15160E15140F15
-      1310151311151410171611181913191C131B1F151D2C1824
-      34212942282C7A1D218E1C238F1C238C1F22772221442828
-      2B1E211F131B181014120E11100C100D0C100C0B110D0B10
-      0F0C10120E121614181B191D25212334272B452D307F1E24
-      8E1D24941E24981D269C1D279C1C239A1C24941D20912121
-      8A20224A30343B283230222C2C22282621241F1F24211C22
-      291A1F2E1B253A2529741C238B1B21901B23951D27991F26
-      9C1F279D21279A242897222A911E25881B235F181D312019
-      201819191417141118121017110F15121016100F1814101B
-      1213232019232A24262E2A2934352D43442E624B4165453F
-      92223096212B9D2129A01E27A02027A21D25A12328AB2526
-      9D25289724289020278A20264F2C303D292E3724272F202A
-      231C231B181D1B151B16141A1314181012180F10160F1017
-      0F1316101016110F160E10150C0F140F0D14120E15131015
-      16101519141518161919181D1D191F201B201F1B211F191D
-      1B151A1C131A1A1018191117170E17130F16100E130E0D12
-      0D0B120F0C12100E110F0F13101014101015120F17141017
-      17121A1813211D121E2318202B1C22372025452A2B831B20
+      FDCB74FFC272FDB26FFEC576FCC97AFFD682EAE7C4EDF4CB
+      C4E9EFB3E1F8B0E2F9AFDFF6B3DEE7A0A4CA926DA17A3E7C
+      712F6D6D296668185765094C67064D6405456E003D71003E
+      6B013F69003F6909395F06406700476A044D6F0044670143
+      66003D69013E6F00447E0E49892E5AB8546CE07471ED9682
+      F7A283FFD186F0F3C8F2F5CAFEFFAAFFD37EFDCA77FFAE6F
+      FF8C5DEF6B54D96160D45C5DD3585AD05655D05C5FCE576B
+      CA6166D56162DC6E57E7826EED9378FCA270FBAA73FEAC7D
+      FFCA80FFD382EBF2C8C3F1E6BEEBF1B0E9FAAFE8FCB1DFF6
+      B8CDEAA7A8D6907BB48059856B316E6B2B6863276366184A
+      6B074F750349990E4FA230549C4D7D8B4C79793D79893779
+      93547F8D75A5A0A0C6B4C6DEAEDCF3B0E3F8AFE3F8AAE7FC
+      A7E3FBA8E0F799DCF798CFEE9EA3C9958CB98B77A887619A
+      815B948C70A16E81C67382D57888D57888D67788D88290DB
+      8897DC92A9C99695BF9594BC9C9AC29EA6CB9DC8E8A9E0F5
+      ABE4F8B0E8F5B0EBF1C0ECEFEBF2C9FDCD81FBB884F8AB75
+      E58A6BD67967D76363D56161D55C61D65E5DD55F5FCE5F66
+      CD5A5DD65C5BD46060D96264D96264DA6A66FDA76CE88872
+      7135716D27656D094F6B054E6C004E70004872004C88054B
+      A31E49BE425EC45367D16865E6836EF09B7CF9A670FFA66F
+      FCAC6DFCAA60EA8E69DE7669DA736EDA6F69D76766D76366
+      D6696CD47573B275879891BA9791BDA583A8CF8E8CF29A86
+      E4A1C0BBD9F1BEE8FEB5E9FFB2EAFBB9ECFFBFEAFDEFECFF
+      FFF9FBF9FFFFC1EAFEBCEBFDD0D3FCDA9DBCC17991B25778
+      7733706F2A696A2661720C567D084E980C53A32B4FA74669
+      C34E56CA5659BF4957AC2E54961B477C0B3F75003E710042
+      6D0043720048750046880048970846A52347C34550C74D58
+      D15658D3585DD25658CF5457C54954B23C569E204F770449
+      73004572003D72004572094B851965742F6E892F62B33D5F
+      C5405BEB4664FB5D74FF5C63F57158F57E5CF0886FF39D84
+      FFA0A2DCB2CABFEAF3BCEBFDBCEAFAC1ECF2FAECECF0F2CA
+      EDF3C7FFD27DFCCB7EFFCD7AFED07BFFD27DFFD179FFCC79
    </palette>
 </flame>
 <flame version="EMBER-LNX-22.21.4.2" time="5" name="005" size="2560 1440" center="0 0" scale="450" rotate="0" supersample="2" filter="0.2" filter_shape="gaussian" temporal_filter_type="box" temporal_filter_width="1" quality="1000" temporal_samples="100" sub_batch_size="10240" fuse="15" rand_range="1" background="0 0 0" brightness="10" gamma="3" highlight_power="1" logscale_k2="0" vibrancy="1" estimator_radius="9" estimator_minimum="0" estimator_curve="0.4" gamma_threshold="0.025" cam_zpos="0" cam_persp="0" cam_yaw="0" cam_pitch="0" cam_dof="0" blur_curve="0" palette_mode="linear" interpolation="smooth" interpolation_type="log" plugins="linear" new_linear="1" curves="0 0 1 0.25 0.25 1 0.75 0.75 1 1 1 1 0 0 1 0.25 0.25 1 0.75 0.75 1 1 1 1 0 0 1 0.25 0.25 1 0.75 0.75 1 1 1 1 0 0 1 0.25 0.25 1 0.75 0.75 1 1 1 1 " overall_curve="0 0 0.25 0.25 0.75 0.75 1 1 " red_curve="0 0 0.25 0.25 0.75 0.75 1 1 " green_curve="0 0 0.25 0.25 0.75 0.75 1 1 " blue_curve="0 0 0.25 0.25 0.75 0.75 1 1 ">
