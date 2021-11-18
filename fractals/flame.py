@@ -343,7 +343,8 @@ class Flame:
             for xform in clone.xforms:
                 xform.animate(i, n_frames)
             result.append(clone)
-        return Flames(result, f'color-{self.element.attrib["name"]}-{get_time()}')
+        return Flames(result, f'color-{self.element.attrib["name"]}-{get_time()}',
+                      movie_file_name=self.element.attrib["name"] + '.mp4')
 
     def __repr__(self):
         return ET.tostring(self.to_element()).decode()
@@ -356,11 +357,12 @@ class Flames:
         directory: str,
         quality: int = 1000,
         supersample: int = 2,
+        movie_file_name: str = "animation.mp4"
     ):
         self.flames = flames
         self.directory = directory
         self.filename = os.path.join(self.directory, "animation.flame")
-        self.moviename = os.path.join(self.directory, "animation.mp4")
+        self.moviename = os.path.join(self.directory, movie_file_name)
         self.quality = quality
         self.supersample = supersample
 
