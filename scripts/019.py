@@ -1,7 +1,7 @@
-from fractals.flame import Flame, Transform
+from fractals.flame import Flame
 from fractals.utils import get_flame_from_file
 
-xml = get_flame_from_file("flames/flames.flame", "019", None)
+xml = get_flame_from_file("flames.flame", "019")
 flame = Flame.from_element(xml)
 flame.xforms[2].coefs.fully_rotate_linear(2)
 flame.xforms[3].coefs.fully_rotate_linear(3)

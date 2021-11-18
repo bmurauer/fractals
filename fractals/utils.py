@@ -14,7 +14,7 @@ logger.addHandler(consoleHandler)
 
 
 def get_flame_from_file(
-    file_name: str, flame_name: Optional[str], flame_idx: Optional[int]
+    file_name: str, flame_name: Optional[str] = None, flame_idx: Optional[int] = None
 ) -> ET.Element:
     root = ET.parse(file_name).getroot()
 
