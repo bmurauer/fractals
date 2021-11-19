@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="27.512177mm"
+   height="19.379103mm"
+   viewBox="0 0 27.512176 19.379103"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.1.1 (3bf5ae0d25, 2021-09-20, custom)"
+   sodipodi:docname="logo.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="6.4070146"
+     inkscape:cx="61.963336"
+     inkscape:cy="41.438957"
+     inkscape:window-width="2540"
+     inkscape:window-height="1384"
+     inkscape:window-x="10"
+     inkscape:window-y="10"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2">
+    <rect
+       x="9.7468119"
+       y="112.53738"
+       width="303.42123"
+       height="49.474819"
+       id="rect25380" />
+    <rect
+       x="48.448589"
+       y="111.26332"
+       width="180.05461"
+       height="64.944672"
+       id="rect22326" />
+    <rect
+       x="9.4424515"
+       y="35.643269"
+       width="307.62781"
+       height="166.64626"
+       id="rect1266" />
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-10.469062,-14.682403)">
+    <text
+       xml:space="preserve"
+       transform="matrix(0.26458333,0,0,0.26458333,10.233712,5.9439583)"
+       id="text1264"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:40px;line-height:0;font-family:Untitled1;-inkscape-font-specification:Untitled1;letter-spacing:0.3px;word-spacing:0px;white-space:pre;shape-inside:url(#rect1266);fill:#ffffff;fill-opacity:0.499226;stroke:none"
+       inkscape:export-filename="/data/fractals/logo/logo.png"
+       inkscape:export-xdpi="554.422"
+       inkscape:export-ydpi="554.422"><tspan
+         x="9.4433594"
+         y="59.611809"
+         id="tspan36752"><tspan
+           style="line-height:0.7;font-family:'The Blacklist';-inkscape-font-specification:'The Blacklist, Normal'"
+           id="tspan36748">glowing</tspan><tspan
+           style="line-height:0.7;font-family:'The Blacklist';-inkscape-font-specification:'The Blacklist, Normal'"
+           id="tspan36750">
+</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       transform="matrix(0.26458333,0,0,0.26458333,-0.2759066,-9.1332233)"
+       id="text22324"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:40px;line-height:1.25;font-family:Untitled1;-inkscape-font-specification:Untitled1;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect22326);fill:#ffffff;fill-opacity:0.499226;stroke:none"
+       inkscape:export-filename="/data/fractals/logo/logo.png"
+       inkscape:export-xdpi="554.422"
+       inkscape:export-ydpi="554.422"><tspan
+         x="48.449219"
+         y="148.26367"
+         id="tspan36756"><tspan
+           style="font-family:'The Blacklist';-inkscape-font-specification:'The Blacklist, Normal'"
+           id="tspan36754">embers</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       transform="matrix(0.2907739,0,0,0.2907739,9.533837,-9.4647697)"
+       id="text25378"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:40px;line-height:1.25;font-family:Untitled1;-inkscape-font-specification:Untitled1;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect25380);fill:#ffffff;fill-opacity:0.499226;stroke:none"
+       inkscape:export-filename="/data/fractals/logo/logo.png"
+       inkscape:export-xdpi="554.422"
+       inkscape:export-ydpi="554.422"><tspan
+         x="9.7460938"
+         y="149.53711"
+         id="tspan36760"><tspan
+           style="font-weight:bold;font-size:12.1324px;font-family:Monda;-inkscape-font-specification:'Monda, Bold'"
+           id="tspan36758">FRACTAL ART</tspan></tspan></text>
+  </g>
+</svg>
