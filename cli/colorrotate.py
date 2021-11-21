@@ -33,7 +33,7 @@ def colorrotate(
     flame = Flame.from_element(xml)
     flame.xforms[1].coefs.fully_rotate_linear(1)
     flame.xforms[2].coefs.fully_rotate_linear(2)
-    flames = flame.animate(n_frames=n_frames)
+    flames = flame.animate(total_frames=n_frames)
     flames.render()
     flames.convert_to_movie()
 
