@@ -20,7 +20,7 @@ import numpy as np
 from .utils import logger
 
 
-def interpolate(
+def interpolate_linear(
     value_from: Union[Transform, float],
     value_to: Union[Transform, float],
     n_repetitions: int,
@@ -40,21 +40,21 @@ def interpolate(
         )
 
 
-# def interpolate_sinusoidal(
-#     anim_value: AnimationValue,
-#     frame: int,
-#     n_frames: int,
-# ):
-#     # we need a function that behaves like a sinus to smoothly transition from 0 to 1
-#     def smooth(x):
-#         return (math.cos(math.pi * (2 * x + 1)) + 1) / 2
-#
-#     frames_per_repetition = n_frames / anim_value.n_repetitions
-#     frame_in_repetition = frame % frames_per_repetition
-#     # no check necessary, the cosine function automagically has a bump back to 0.
-#     return anim_value.value + anim_value.offset * smooth(
-#         frame_in_repetition / frames_per_repetition
-#     )
+def interpolate_sinusoidal(
+    value: float,
+    offset: float,
+    frame: int,
+    n_repetitions: int,
+    total_frames: int,
+):
+    # we need a function that behaves like a sinus to smoothly transition from 0 to 1
+    def smooth(x):
+        return (math.cos(math.pi * (2 * x + 1)) + 1) / 2
+
+    frames_per_repetition = total_frames / n_repetitions
+    frame_in_repetition = frame % frames_per_repetition
+    # no check necessary, the cosine function automagically has a bump back to 0.
+    return value + offset * smooth(frame_in_repetition / frames_per_repetition)
 
 
 def rotate(
@@ -87,7 +87,7 @@ def scale(
     target.coefs[0][0] *= factor
     target.coefs[1][1] *= factor
 
-    return interpolate(value, target, n_repetitions, frame, total_frames)
+    return interpolate_linear(value, target, n_repetitions, frame, total_frames)
 
 
 def orbit(
@@ -297,10 +297,25 @@ class XForm:
         return self.element
 
     def animate(self, frame, total_frames):
-        if "weight" in self.animations:
-            target = self.animations["weight"]["target"]
-            n_reps = self.animations["weight"]["n_repetitions"]
-            self.weight = interpolate(self.weight, target, n_reps, frame, total_frames)
+        if "attrib" in self.animations:
+            for name, properties in self.animations["attrib"].items():
+                target = properties["target"]
+                n_reps = properties["n_repetitions"]
+                old = float(self.element.attrib[name])
+                offset = target - old
+                value_as_str = str(
+                    round(
+                        interpolate_sinusoidal(
+                            value=old,
+                            offset=offset,
+                            n_repetitions=n_reps,
+                            frame=frame,
+                            total_frames=total_frames,
+                        ),
+                        7,
+                    )
+                )
+                self.element.attrib[name] = value_as_str
 
         if "orbit" in self.animations:
             radius = self.animations["orbit"]["radius"]
@@ -315,7 +330,9 @@ class XForm:
         if "translate" in self.animations:
             target = self.animations["translate"]["target"]
             n_reps = self.animations["translate"]["n_repetitions"]
-            self.coefs = interpolate(self.coefs, target, n_reps, frame, total_frames)
+            self.coefs = interpolate_linear(
+                self.coefs, target, n_reps, frame, total_frames
+            )
 
         if "rotation" in self.animations:
             n_rotations = self.animations["rotation"]["n_rotations"]
@@ -327,13 +344,17 @@ class XForm:
     def add_scale_animation(self, factor, n_repetitions: int = 1):
         self.animations["scale"] = dict(factor=factor, n_repetitions=n_repetitions)
 
-    def add_weight_animation(self, target, n_repetitions: int = 1):
-        self.animations["weight"] = dict(target=target, n_repetitions=n_repetitions)
+    def add_attr_animation(self, attribute, target: float, n_repetitions: int = 1):
+        if "attrib" not in self.animations:
+            self.animations["attrib"] = dict()
+        self.animations["attrib"][attribute] = dict(
+            target=target, n_repetitions=n_repetitions
+        )
 
     def add_translation_animation(self, target: Transform, n_repetitions: int = 1):
         self.animations["translate"] = dict(target=target, n_repetitions=n_repetitions)
 
-    def add_rotation_animation(self, n_rotations: int):
+    def add_rotation_animation(self, n_rotations: int = 1):
         self.animations["rotation"] = dict(n_rotations=n_rotations)
 
     def __repr__(self):
