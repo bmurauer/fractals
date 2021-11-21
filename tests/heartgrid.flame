@@ -1,0 +1,48 @@
+<flames>
+<flame version="EMBER-LNX-22.21.4.2" time="0" name="Flame_2021-11-05-223144_1" size="400 300" center="3.95647 3.125" scale="40" rotate="0" supersample="2" filter="0.4" filter_shape="gaussian" temporal_filter_type="box" temporal_filter_width="1" quality="1000" temporal_samples="100" sub_batch_size="10240" fuse="15" rand_range="1" background="0 0 0" brightness="4" gamma="4" highlight_power="1" logscale_k2="0" vibrancy="1" estimator_radius="9" estimator_minimum="0" estimator_curve="0.4" gamma_threshold="0.04" cam_zpos="0" cam_persp="0" cam_yaw="0" cam_pitch="0" cam_dof="0" blur_curve="0" palette_mode="linear" interpolation="linear" interpolation_type="log" plugins="blur_heart linear" new_linear="1" curves="0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 " overall_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 " red_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 " green_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 " blue_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 ">
+   <xform weight="0.25" color="0" var_color="1" color_speed="0.5" symmetry="0" name="" animate="1" blur_heart="0.4" blur_heart_p="0.5" blur_heart_a="-0.6" blur_heart_b="0.7" coefs="1 0 0 1 0 0" opacity="1"/>
+   <xform weight="0.25" color="1" var_color="1" color_speed="0.5" symmetry="0" name="" animate="1" linear="1" coefs="1 0 0 1 0 1" opacity="1"/>
+   <xform weight="0.25" color="1" var_color="1" color_speed="0.5" symmetry="0" name="" animate="1" linear="1" coefs="1 0 0 1 1 0" opacity="1"/>
+   <palette count="256" format="RGB">
+      E4B45BDEAF57DCA85AD1A252CE9D53CB9850C89156CE9A57
+      D6A362DBAB64E1B967E5BD6DEFC777EAC382ECC48CECC287
+      EBB683E3B57EE1AE71DBA267D9A368D8A072DBA77AE0AC7A
+      DDAE77DAAC6FDBA868D2A16BD39E66DA9B66D7A562DEAD61
+      E5AD5FE5AF61E6B260E9B65EE5AD52E5B24EE0B150DDA351
+      DEA153DAA254DAA65CDAA463E0AE6BE8B976E2C081E1C58E
+      E4C195E4C499D3AAAED7AF7FDBB17DD9A777D2A57BD3A471
+      C89C6EC1927CC89D72DAAC77E4B472EBBA70EDBB67F0B764
+      F5C266F5C26CF5BF70F3C570F4C76EF4CB73FDDD63F8DD7B
+      F8DA82F5D081EFCA86E7BF7FF1B277EBB26DE8AE74E5B97D
+      EBC67BEFC57FEFC981F0CA95F3D0A0F5D9AEF2EDB0FCE59C
+      F6D586F1BE80E6AF6FDBAA58D09946CC913EC88F40C3883B
+      BB7D34B27531A06E27B17B30BA8642C39352C89B58D4A364
+      DBAC6AE3B571E5B772ECB871F1BD6FF5BE70F1B666EBB25D
+      E0A354E19946D2933FCF913BC58D3FC08339BC8438BB8239
+      C38441C78E46C89649CD944ECA9455CE9E52D5A35AD7A15F
+      D3A462C3AE68CFAC72D7B67CE6C56AEBCC6EF4D47FFBD78E
+      F6DA8FF3DBABF0D9B0E8CAADEBD3BBF9F1C9F5EEB4F6E1A9
+      F6D9A4FAD595F8C97FF0C177E8B46DE4B365E1AD59DEAB55
+      E0A757E4A956E9AE5FE3AD5FE2A766DFAC6DDEB070E3B26C
+      E4B66DE9B669ECB863ECB963F0BA61EDB25CEEB25BE9B64F
+      E9BB4EEBBF57F2BB5AF9B85FF2BD63F0BD67F3BC60F3AE4E
+      E4AC43DB9A37CE8F3ACA8A28CB8D3BC98E42C7924EC69963
+      CCA46CD9AE66E4AD66EDAF63ECBA61EEC662F5C759F4C159
+      F6BD5EF5C06CF4C372F0C87BEAC988ECC58DE6C190ECCB95
+      F4D5A2FADEA4FAE598FCE68FF5D288F6D182F1CB76ECC273
+      E7B869E0AA5CD89F4FCE944AC98D52BE8A5DB58861C48D5B
+      C88D4BD09546CF9C46D1A554D5A95CD8AA62D09F66CE9A68
+      CB9669C5936ABE8A65B8875AB78556BC8857C28950BC7F3E
+      B27D35B4792BB68032BC8A43C08D4FC58E4FC79155C78D57
+      CD8E5DD39565D79A5CDEA35EDB9F5DD39C5DCB985ECB9560
+      CB985BC6965BC58F59BD8A58AB7254B97F53BF8E5AB38353
+   </palette>
+   <edit date="So Nov 21 13:29:10 +0100 2021" action="edit">
+      <edit date="Fr Nov 05 22:47:07 +0100 2021" action="edit" filename="/home/benjamin/git/fractals/heartgrid.flame" index="0">
+         <edit date="Fr Nov 05 22:39:17 +0100 2021" action="edit" filename="/home/benjamin/git/fractals/heartgrid.flame" index="0">
+            <edit filename="" index="0"/>
+         </edit>
+      </edit>
+   </edit>
+</flame>
+</flames>

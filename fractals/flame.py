@@ -20,78 +20,96 @@ import numpy as np
 from .utils import logger
 
 
-def interpolate_linear(
-    anim_value: AnimationValue,
+def interpolate(
+    value_from: Union[Transform, float],
+    value_to: Union[Transform, float],
+    n_repetitions: int,
     frame: int,
-    n_frames: int,
+    total_frames: int,
 ):
-    frames_per_repetition = n_frames / anim_value.n_repetitions
+    frames_per_repetition = total_frames / n_repetitions
     frame_in_repetition = frame % frames_per_repetition
 
     if (frame % frames_per_repetition) <= frames_per_repetition / 2:
         return (
-            anim_value.original_value
-            + anim_value.offset * frame_in_repetition * 2 / frames_per_repetition
+            value_from
+            + value_to * frame_in_repetition * 2 / frames_per_repetition
         )
     else:
         return (
-            anim_value.original_value
-            + anim_value.offset * 2
-            - anim_value.offset * frame_in_repetition * 2 / frames_per_repetition
+            value_from
+            + value_to * 2
+            - value_to * frame_in_repetition * 2 / frames_per_repetition
         )
 
 
-def interpolate_sinusoidal(
-    anim_value: AnimationValue,
+# def interpolate_sinusoidal(
+#     anim_value: AnimationValue,
+#     frame: int,
+#     n_frames: int,
+# ):
+#     # we need a function that behaves like a sinus to smoothly transition from 0 to 1
+#     def smooth(x):
+#         return (math.cos(math.pi * (2 * x + 1)) + 1) / 2
+#
+#     frames_per_repetition = n_frames / anim_value.n_repetitions
+#     frame_in_repetition = frame % frames_per_repetition
+#     # no check necessary, the cosine function automagically has a bump back to 0.
+#     return anim_value.value + anim_value.offset * smooth(
+#         frame_in_repetition / frames_per_repetition
+#     )
+
+
+def rotate(
+    value: Transform,
+    n_rotations: int,
     frame: int,
-    n_frames: int,
+    total_frames: int,
 ):
-    # we need a function that behaves like a sinus to smoothly transition from 0 to 1
-    def smooth(x):
-        return (math.cos(math.pi * (2 * x + 1)) + 1) / 2
-
-    frames_per_repetition = n_frames / anim_value.n_repetitions
-    frame_in_repetition = frame % frames_per_repetition
-    # no check necessary, the cosine function automagically has a bump back to 0.
-    return anim_value.value + anim_value.offset * smooth(
-        frame_in_repetition / frames_per_repetition
-    )
+    value.rotate(frame * n_rotations * 2 * math.pi / total_frames)
+    return value
 
 
-def rotate_linear(
-    anim_value: AnimationValue,
+def rotate_vector(vector, rad, rotation_center=None):
+    if rotation_center is None:
+        rotation_center = np.array([0, 0, 1]).T
+    x = np.array(
+        [
+            [math.cos(rad), -math.sin(rad), 0],
+            [math.sin(rad), math.cos(rad), 0],
+            [0, 0, 1],
+        ]
+    ).dot(vector - rotation_center)
+    return x + rotation_center
+
+
+def scale(
+    value: Transform,
+    factor: float,
+    n_repetitions: int,
     frame: int,
-    n_frames: int,
+    total_frames: int
 ):
-    anim_value.value.rotate(frame * anim_value.n_repetitions * 2 * math.pi / n_frames)
-    return anim_value.value
+    target = deepcopy(value)
+    target.coefs[0][0] *= factor
+    target.coefs[1][1] *= factor
+
+    return interpolate(value, target, n_repetitions, frame, total_frames)
 
 
-def orbit_transform(
-    anim_value: AnimationValue,
+def orbit(
+    value: Transform,
+    radius: float,
+    n_rotations: int,
     frame: int,
-    n_frames: int,
+    total_frames: int,
 ):
-    if type(anim_value.value) is not Transform:
-        raise Exception("orbit only allowed for Transforms")
-    transform: Transform = anim_value.value
+    x = np.array([radius, 0, 1]).T
+    x = rotate_vector(x,  2 * math.pi * n_rotations * frame / total_frames)
+    x[0] -= radius
+    value.translate(x[0], x[1])
+    return value
 
-    # rotation root is south of the origin
-    rotation_root = np.array([0, -anim_value.radius, 1]).T
-    radiants = 2 * math.pi * anim_value.n_repetitions * frame / n_frames
-    offset_coordinates = rotation_root.dot(
-        np.array(
-            [
-                [math.cos(radiants), -math.sin(radiants), 0],
-                [math.sin(radiants), math.cos(radiants), 0],
-                [0, 0, 1],
-            ]
-        )
-    )
-    off_x, off_y, _ = offset_coordinates.tolist()
-
-    transform.translate(off_x, off_y)
-    return transform
 
 
 def get_time():
@@ -117,6 +135,11 @@ class Transform:
         ).dot(self.coefs)
         self.coefs[0][2] = origin_x
         self.coefs[1][2] = origin_y
+
+    def translate_orbit_step(self, radius, frame, total_frames):
+        x = np.array([radius, 0, 1]).T
+        x = rotate_vector(x, 2 * math.pi * frame / total_frames)
+        self.translate(x[0] - radius,  x[1])
 
     def translate(self, x: float, y: float):
         self.coefs[0][2] += x
@@ -237,9 +260,10 @@ class Palette:
         return new_colors
 
     def animate(self, frame, total_frames):
-        frames_per_rotation = total_frames / self.n_rotations
-        frame_in_rotation = frame % frames_per_rotation
-        self.colors = self.rotate(frame_in_rotation / frames_per_rotation)
+        if self.n_rotations:
+            frames_per_rotation = total_frames / self.n_rotations
+            frame_in_rotation = frame % frames_per_rotation
+            self.colors = self.rotate(frame_in_rotation / frames_per_rotation)
 
     def mutate(self):
         pass
@@ -259,20 +283,21 @@ class XForm:
     def __init__(
         self,
         element: ET.Element,
-        coefs: AnimationValue,
-        color: AnimationValue,
-        weight: AnimationValue = None,
+        coefs: Transform,
+        color: float = 1.0,
+        weight: float = 1.0,
     ):
         self.element = element
         self.coefs = coefs
         self.color = color
-        self.weight = weight or AnimationValue(1.0)
+        self.weight = weight
+        self.animations = dict()
 
     @classmethod
     def from_element(cls, element: ET.Element):
-        coefs = AnimationValue(Transform(element.attrib["coefs"]))
-        color = AnimationValue(float(element.attrib["color"]))
-        weight = AnimationValue(float(element.attrib["weight"]))
+        coefs = Transform(element.attrib["coefs"])
+        color = float(element.attrib["color"])
+        weight = float(element.attrib["weight"])
         return XForm(element, coefs, color, weight)
 
     def to_element(self) -> ET.Element:
@@ -281,24 +306,45 @@ class XForm:
         self.element.attrib["weight"] = str(self.weight)
         return self.element
 
-    def mutate(
-        self,
-        mutate_coefs=True,
-        mutate_color=True,
-        mutate_variations=True,
-    ):
-        if mutate_coefs:
-            self.coefs.mutate()
-        if mutate_color:
-            self.color = random.uniform(0.0, 1.0)
-            self.element.attrib["color_speed"] = str(random.uniform(0.0, 1.0))
-        if mutate_variations:
-            pass
-
     def animate(self, frame, total_frames):
-        self.weight = self.weight.animate(frame, total_frames)
-        self.coefs = self.coefs.animate(frame, total_frames)
-        self.color = self.color.animate(frame, total_frames)
+        if 'weight' in self.animations:
+            target = self.animations['weight']['target']
+            n_reps = self.animations['weight']['n_repetitions']
+            self.weight = interpolate(self.weight, target, n_reps, frame, total_frames)
+
+        if 'orbit' in self.animations:
+            radius = self.animations['orbit']['radius']
+            n_reps = self.animations['orbit']['n_repetitions']
+            self.coefs = orbit(self.coefs, radius, n_reps, frame, total_frames)
+
+        if 'scale' in self.animations:
+            factor = self.animations['scale']['factor']
+            n_reps = self.animations['scale']['n_repetitions']
+            self.coefs = scale(self.coefs, factor, n_reps, frame, total_frames)
+
+        if 'translate' in self.animations:
+            target = self.animations['translate']['target']
+            n_reps = self.animations['translate']['n_repetitions']
+            self.coefs = interpolate(self.coefs, target, n_reps, frame, total_frames)
+
+        if 'rotation' in self.animations:
+            n_rotations = self.animations['rotation']['n_rotations']
+            self.coefs = rotate(self.coefs, n_rotations, frame, total_frames)
+
+    def add_orbit_animation(self, radius, n_repetitions: int = 1):
+        self.animations['orbit'] = dict(radius=radius, n_repetitions=n_repetitions)
+
+    def add_scale_animation(self, factor, n_repetitions: int = 1):
+        self.animations['scale'] = dict(factor=factor, n_repetitions=n_repetitions)
+
+    def add_weight_animation(self, target, n_repetitions: int = 1):
+        self.animations['weight'] = dict(target=target, n_repetitions=n_repetitions)
+
+    def add_translation_animation(self, target: Transform, n_repetitions: int = 1):
+        self.animations['translate'] = dict(target=target, n_repetitions=n_repetitions)
+
+    def add_rotation_animation(self, n_rotations: int):
+        self.animations['rotation'] = dict(n_rotations=n_rotations)
 
     def __repr__(self):
         return ET.tostring(self.to_element(), encoding="utf-8").decode()
@@ -310,29 +356,34 @@ class Flame:
         element: ET.Element,
         palette: Palette,
         xforms: List[XForm],
+        final_xform: XForm,
     ):
         self.element: ET.Element = element
         self.palette: Palette = palette
         self.xforms: List[XForm] = xforms
+        self.final_xform: XForm = final_xform
 
     @classmethod
     def from_element(cls, element: ET.Element) -> Flame:
         xforms = [XForm.from_element(xform) for xform in element.findall("xform")]
-        return Flame(element, Palette.from_element(element.find("palette")), xforms)
+        final_xform = None
+        if element.find('finalxform'):
+            final_xform = XForm.from_element(element.find("finalxform"))
+        return Flame(
+            element,
+            Palette.from_element(element.find("palette")),
+            xforms,
+            final_xform
+        )
 
     def to_element(self) -> ET.Element:
         clone = copy.deepcopy(self.element)
         clone[:] = []
         [clone.append(xform.to_element()) for xform in self.xforms]
-        [clone.extend(self.element.findall("finalxform"))]
+        if self.final_xform:
+            clone.extend(self.final_xform.to_element())
         clone.append(self.palette.to_element())
         return clone
-
-    def mutate(self, mutate_palette=True, mutate_xforms=True):
-        if mutate_palette:
-            self.palette.mutate()
-        if mutate_xforms:
-            [xform.mutate() for xform in self.xforms]
 
     def animate(self, n_frames):
         result: List[Flame] = []
@@ -436,60 +487,3 @@ class Flames:
         logger.info("combining pngs to mp4 file: %s", self.moviename)
         sp.Popen(command).communicate()
         shutil.rmtree(tmpdir.name)
-
-
-class AnimationValue:
-    def __init__(
-        self,
-        value: Union[float, Transform],
-        offset: Union[float, Transform] = None,
-        n_repetitions: int = 1,
-        orbit: float = None,
-    ):
-        self.value = value
-        self.original_value = deepcopy(value)
-        self.method = None
-        self.offset = offset
-        self.n_repetitions = n_repetitions
-        self.orbit = orbit
-
-    def interpolate_linear(self, target: Union[float, Transform], n_rotations: int = 1):
-        assert type(self.original_value) == type(target)
-        self.offset = target
-        self.n_repetitions = n_rotations
-        self.method = interpolate_linear
-        return self
-
-    def interpolate_sinusoidal(
-        self, target: Union[float, Transform], n_rotations: int = 1
-    ):
-        assert type(self.original_value) == type(target)
-        self.offset = target
-        self.n_repetitions = n_rotations
-        self.method = interpolate_sinusoidal
-        return self
-
-    def fully_rotate_linear(self, n_rotations: int = 1):
-        self.n_repetitions = n_rotations
-        self.method = rotate_linear
-        return self
-
-    def orbit_transform(self, n_rotations: int = 1, radius: float = 0.1):
-        self.n_repetitions = n_rotations
-        self.radius = radius
-        self.method = orbit_transform
-        return self
-
-    def animate(self, frame, total_frames) -> AnimationValue:
-        if self.method is not None:
-            self.value = self.method(self, frame, total_frames)
-        return deepcopy(self)
-
-    def reset(self):
-        self.value = self.original_value
-
-    def mutate(self):
-        pass
-
-    def __repr__(self):
-        return str(self.value)

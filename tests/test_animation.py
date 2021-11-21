@@ -4,104 +4,80 @@ import xml.etree.ElementTree as ET
 import numpy as np
 import pytest
 from fractals.flame import (
-    AnimationValue,
     Transform,
-    XForm,
-    interpolate_linear,
-    interpolate_sinusoidal,
-    orbit_transform,
+    XForm, orbit, Flame,
 )
+from fractals.utils import get_flame_from_file
 
 
 def test_translation():
     t = Transform("1 0 0 1 0 0")
     t.translate(2, 3)
-    assert t.__repr__() == "1.0 0.0 0.0 1.0 2.0 3.0"
+    np.testing.assert_array_almost_equal(
+        np.array([[1, 0, 2], [0, 1, 3], [1, 1, 1]]),
+        t.coefs
+    )
 
 
 def test_rotation():
     t = Transform("1 0 0 1 2 3")
     t.rotate(math.pi)
-    assert t.__repr__() == "-1.0 0.0 -0.0 -1.0 2.0 3.0"
+    np.testing.assert_array_almost_equal(
+        np.array([[-1, 0, 2], [0, -1, 3], [1, 1, 1]]),
+        t.coefs
+    )
 
 
-def test_sinusoidal_animation():
-    value = 0.0
-    offset = 1.0
-    n_frames = 100
-    expected_values = [0.0] * 100
-    a = AnimationValue(value, offset)
+def test_orbit():
+    f = Flame.from_element(get_flame_from_file("heartgrid.flame"))
+    f.xforms[0].add_orbit_animation(radius=3.0)
+    expected_coefs =[
+        [[1, 0, 0], [0, 1, 0], [1, 1, 1]],
+        [[1, 0, -3], [0, 1, 3], [1, 1, 1]],
+        [[1, 0, -6], [0, 1, 0], [1, 1, 1]],
+        [[1, 0, -3], [0, 1, -3], [1, 1, 1]],
+    ]
+    n_frames = 4
+    flames = f.animate(n_frames)
     for i in range(n_frames):
-        v = interpolate_sinusoidal(a, frame=i, n_frames=n_frames)
-        print(v)
-        # assert v == pytest.approx(expected_values[i])
-
-
-def test_orbit_transform():
-    t = Transform("1 0 0 0 1 0")
-    a = AnimationValue(t, orbit=1.0).orbit_transform()
-    for i in range(10):
-        orbit_transform(a, i, 10)
-        print(t.coefs)
-
-
-def test_linear_animation_single_rotation():
-    value = 0
-    offset = 1.0
-    n_frames = 10
-    expected_values = [0, 0.2, 0.4, 0.6, 0.8, 1.0, 0.8, 0.6, 0.4, 0.2]
-
-    a = AnimationValue(value)
-    a.offset = offset
-    a.n_repetitions = 1
-    for i in range(n_frames):
-        v = interpolate_linear(a, frame=i, n_frames=n_frames)
-        assert v == pytest.approx(expected_values[i])
-
-
-def test_linear_animation_multiple_rotations():
-    value = 0
-    offset = 1.0
-    n_frames = 8
-    expected_values = [0, 0.5, 1.0, 0.5, 0, 0.5, 1.0, 0.5]
-
-    a = AnimationValue(value)
-    a.offset = offset
-    a.n_repetitions = 2
-    for i in range(n_frames):
-        v = interpolate_linear(a, frame=i, n_frames=n_frames)
-        assert v == pytest.approx(expected_values[i])
+        np.testing.assert_array_almost_equal(
+            np.array(expected_coefs[i]),
+            flames.flames[i].xforms[0].coefs.coefs
+        )
 
 
 def test_linear_animation_Transform():
-    value = Transform("1 0 0 0 1 0")
-    offset = Transform("1 0 0 0 1 0")
+    f = Flame.from_element(get_flame_from_file("heartgrid.flame"))
+    f.xforms[0].coefs = Transform("1 0 0 1 1 0")
+    offset = Transform("0 0 0 0 1 0")
+    offset.coefs = np.array([
+        [0, 0, 1],
+        [0, 0, 0],
+        [0, 0, 0],
+    ])
+    f.xforms[0].add_translation_animation(offset)
+
     n_frames = 10
-    expected_values = [
-        [1.0, 0, 0, 0, 1.0, 0],
-        [1.2, 0, 0, 0, 1.2, 0],
-        [1.4, 0, 0, 0, 1.4, 0],
-        [1.6, 0, 0, 0, 1.6, 0],
-        [1.8, 0, 0, 0, 1.8, 0],
-        [2.0, 0, 0, 0, 2.0, 0],
-        [1.8, 0, 0, 0, 1.8, 0],
-        [1.6, 0, 0, 0, 1.6, 0],
-        [1.4, 0, 0, 0, 1.4, 0],
-        [1.2, 0, 0, 0, 1.2, 0],
+    expected_coefs = [
+        [[1.0, 0, 1.0], [0, 1, 0], [1, 1, 1]],
+        [[1.0, 0, 1.2], [0, 1, 0], [1, 1, 1]],
+        [[1.0, 0, 1.4], [0, 1, 0], [1, 1, 1]],
+        [[1.0, 0, 1.6], [0, 1, 0], [1, 1, 1]],
+        [[1.0, 0, 1.8], [0, 1, 0], [1, 1, 1]],
+        [[1.0, 0, 2.0], [0, 1, 0], [1, 1, 1]],
+        [[1.0, 0, 1.8], [0, 1, 0], [1, 1, 1]],
+        [[1.0, 0, 1.6], [0, 1, 0], [1, 1, 1]],
+        [[1.0, 0, 1.4], [0, 1, 0], [1, 1, 1]],
+        [[1.0, 0, 1.2], [0, 1, 0], [1, 1, 1]],
     ]
-    a = AnimationValue(value)
-    a.offset = offset
+
+    flames = f.animate(n_frames)
     for i in range(n_frames):
-        v = (
-            interpolate_linear(
-                a,
-                frame=i,
-                n_frames=n_frames,
-            )
-            .coefs[0:2, :]
-            .flatten()
+        np.testing.assert_array_almost_equal(
+            np.array(expected_coefs[i]),
+            flames.flames[i].xforms[0].coefs.coefs
         )
-        np.testing.assert_array_almost_equal(v, expected_values[i])
+
 
 
 def test_xform_color_animation():
