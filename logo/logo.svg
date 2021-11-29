@@ -24,7 +24,7 @@
      inkscape:document-units="mm"
      showgrid="false"
      inkscape:zoom="6.4070146"
-     inkscape:cx="61.963336"
+     inkscape:cx="61.885297"
      inkscape:cy="41.438957"
      inkscape:window-width="2540"
      inkscape:window-height="1384"
@@ -62,43 +62,43 @@
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,10.233712,5.9439583)"
        id="text1264"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:40px;line-height:0;font-family:Untitled1;-inkscape-font-specification:Untitled1;letter-spacing:0.3px;word-spacing:0px;white-space:pre;shape-inside:url(#rect1266);fill:#ffffff;fill-opacity:0.499226;stroke:none"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:40px;line-height:0;font-family:Untitled1;-inkscape-font-specification:Untitled1;letter-spacing:0.3px;word-spacing:0px;white-space:pre;shape-inside:url(#rect1266);fill:#ffffff;fill-opacity:1;stroke:none;stroke-opacity:1;stroke-width:0.37795276;stroke-miterlimit:4;stroke-dasharray:none"
        inkscape:export-filename="/data/fractals/logo/logo.png"
-       inkscape:export-xdpi="554.422"
-       inkscape:export-ydpi="554.422"><tspan
+       inkscape:export-xdpi="138.48"
+       inkscape:export-ydpi="138.48"><tspan
          x="9.4433594"
          y="59.611809"
-         id="tspan36752"><tspan
+         id="tspan3069"><tspan
            style="line-height:0.7;font-family:'The Blacklist';-inkscape-font-specification:'The Blacklist, Normal'"
-           id="tspan36748">glowing</tspan><tspan
+           id="tspan3065">glowing</tspan><tspan
            style="line-height:0.7;font-family:'The Blacklist';-inkscape-font-specification:'The Blacklist, Normal'"
-           id="tspan36750">
+           id="tspan3067">
 </tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,-0.2759066,-9.1332233)"
        id="text22324"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:40px;line-height:1.25;font-family:Untitled1;-inkscape-font-specification:Untitled1;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect22326);fill:#ffffff;fill-opacity:0.499226;stroke:none"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:40px;line-height:1.25;font-family:Untitled1;-inkscape-font-specification:Untitled1;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect22326);fill:#ffffff;fill-opacity:1;stroke:none;stroke-opacity:1;stroke-width:0.37795276;stroke-miterlimit:4;stroke-dasharray:none"
        inkscape:export-filename="/data/fractals/logo/logo.png"
-       inkscape:export-xdpi="554.422"
-       inkscape:export-ydpi="554.422"><tspan
+       inkscape:export-xdpi="138.48"
+       inkscape:export-ydpi="138.48"><tspan
          x="48.449219"
          y="148.26367"
-         id="tspan36756"><tspan
+         id="tspan3073"><tspan
            style="font-family:'The Blacklist';-inkscape-font-specification:'The Blacklist, Normal'"
-           id="tspan36754">embers</tspan></tspan></text>
+           id="tspan3071">embers</tspan></tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.2907739,0,0,0.2907739,9.533837,-9.4647697)"
        id="text25378"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:40px;line-height:1.25;font-family:Untitled1;-inkscape-font-specification:Untitled1;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect25380);fill:#ffffff;fill-opacity:0.499226;stroke:none"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:40px;line-height:1.25;font-family:Untitled1;-inkscape-font-specification:Untitled1;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect25380);fill:#ffffff;fill-opacity:1;stroke:none;stroke-opacity:1;stroke-width:0.34390983;stroke-miterlimit:4;stroke-dasharray:none"
        inkscape:export-filename="/data/fractals/logo/logo.png"
-       inkscape:export-xdpi="554.422"
-       inkscape:export-ydpi="554.422"><tspan
+       inkscape:export-xdpi="138.48"
+       inkscape:export-ydpi="138.48"><tspan
          x="9.7460938"
          y="149.53711"
-         id="tspan36760"><tspan
+         id="tspan3077"><tspan
            style="font-weight:bold;font-size:12.1324px;font-family:Monda;-inkscape-font-specification:'Monda, Bold'"
-           id="tspan36758">FRACTAL ART</tspan></tspan></text>
+           id="tspan3075">FRACTAL ART</tspan></tspan></text>
   </g>
 </svg>

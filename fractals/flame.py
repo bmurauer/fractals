@@ -8,7 +8,6 @@ import random
 import re
 import shutil
 import subprocess as sp
-import tempfile
 import xml.etree.ElementTree as ET
 from copy import deepcopy
 from glob import glob
@@ -484,11 +483,11 @@ class Flames:
             "--in",
             self.filename,
             "--begin",
-            "begin",
+            str(begin),
             "--quality",
-            "self.quality",
+            str(self.quality),
             "--supersample",
-            "self.supersample",
+            str(self.supersample),
         ]
 
         logger.info("rendering flames of %s", self.filename)
@@ -496,15 +495,14 @@ class Flames:
         sp.Popen(command).communicate()
 
     def convert_to_movie(self):
-        # def combine_pngs_to_mp4(output_filename: str, pngs: List[str]):
-        tmpdir = tempfile.TemporaryDirectory()
-        pngs = sorted(glob(self.directory + "/*.png"))
-        for i, png in enumerate(pngs):
-            shutil.copy(png, os.path.join(tmpdir.name, f"{i:04d}.png"))
         command = [
             "ffmpeg",
             "-i",
-            f'{os.path.join(tmpdir.name, r"%04d.png")}',
+            f'{os.path.join(self.directory, r"%04d.png")}',
+            "-i",
+            "logo/logo.png",
+            "-filter_complex",
+            '"[1]format=rgba,colorchannelmixer=aa=0.2[logo];[0][logo]overlay=W-w-20:H-h-20:format=auto,format=yuv420p"'
             "-r",
             "25",
             "-c:v",
@@ -512,7 +510,7 @@ class Flames:
             "-pix_fmt",
             "yuv420p",
             "-crf",
-            "25",
+            "22",
             self.moviename,
         ]
         logger.info("combining pngs to mp4 file: %s", self.moviename)
