@@ -502,7 +502,7 @@ class Flames:
             "-i",
             "logo/logo.png",
             "-filter_complex",
-            '"[1]format=rgba,colorchannelmixer=aa=0.2[logo];[0][logo]overlay=W-w-20:H-h-20:format=auto,format=yuv420p"'
+            '[1]format=rgba,colorchannelmixer=aa=0.2[logo];[0][logo]overlay=W-w-20:H-h-20:format=auto,format=yuv420p'
             "-r",
             "25",
             "-c:v",
