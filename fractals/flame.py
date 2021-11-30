@@ -515,4 +515,3 @@ class Flames:
         ]
         logger.info("combining pngs to mp4 file: %s", self.moviename)
         sp.Popen(command).communicate()
-        shutil.rmtree(tmpdir.name)
