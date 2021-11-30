@@ -1,0 +1,5 @@
+037
+004 (size was too small)
+019 (--)
+026 (--)
+027 (more zoom)
