@@ -6,7 +6,6 @@ import math
 import os
 import random
 import re
-import shutil
 import subprocess as sp
 import xml.etree.ElementTree as ET
 from copy import deepcopy
@@ -379,6 +378,10 @@ class Flame:
         self.final_xform: XForm = final_xform
         self.animations = {}
 
+        if element.attrib["size"] != "4096 2160":
+            logger.warn("Not a 4k size: %s - overwriting!", element.attrib["size"])
+            self.element.attrib["size"] = "4096 2160"
+
     @classmethod
     def from_element(cls, element: ET.Element) -> Flame:
         xforms = [XForm.from_element(xform) for xform in element.findall("xform")]
@@ -502,7 +505,7 @@ class Flames:
             "-i",
             "logo/logo.png",
             "-filter_complex",
-            '[1]format=rgba,colorchannelmixer=aa=0.2[logo];[0][logo]overlay=W-w-20:H-h-20:format=auto,format=yuv420p',
+            "[1]format=rgba,colorchannelmixer=aa=0.2[logo];[0][logo]overlay=W-w-20:H-h-20:format=auto,format=yuv420p",
             "-r",
             "25",
             "-c:v",
