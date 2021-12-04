@@ -28,6 +28,8 @@ def interpolate_linear(
     frames_per_repetition = total_frames / n_repetitions
     frame_in_repetition = frame % frames_per_repetition
 
+    value_to -= value_from
+
     if (frame % frames_per_repetition) <= frames_per_repetition / 2:
         return value_from + value_to * frame_in_repetition * 2 / frames_per_repetition
     else:

@@ -1639,7 +1639,47 @@
       B8222FE40F33ED1134F71435FE0362FD0040F70627E90720
    </palette>
 </flame>
-<flame version="EMBER-LNX-22.21.4.2" time="39" name="Flame_2021-12-03-132321_1" size="1739 1310" center="0 0" scale="740" rotate="0" supersample="2" filter="1" filter_shape="gaussian" temporal_filter_type="box" temporal_filter_width="1" quality="1000" temporal_samples="100" sub_batch_size="10240" fuse="15" rand_range="1" background="0 0 0" brightness="4" gamma="4" highlight_power="1" logscale_k2="0" vibrancy="1" estimator_radius="0" estimator_minimum="0" estimator_curve="0.4" gamma_threshold="0.1" cam_zpos="0" cam_persp="0" cam_yaw="0" cam_pitch="0" cam_dof="0" blur_curve="0" palette_mode="linear" interpolation="linear" interpolation_type="log" plugins="pre_Lissajous pre_CircleRand linear post_dc_bubble" new_linear="1" curves="0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 " overall_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 " red_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 " green_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 " blue_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 ">
+<flame version="EMBER-LNX-22.21.4.2" time="39" name="039" size="4096 2160" center="-1.60174 0.0482653" scale="210" rotate="-28.6953" supersample="2" filter="0.3" filter_shape="gaussian" temporal_filter_type="box" temporal_filter_width="1" quality="1000" temporal_samples="100" sub_batch_size="10240" fuse="15" rand_range="1" background="0 0 0" brightness="7.01" gamma="3" highlight_power="1" logscale_k2="0" vibrancy="1" estimator_radius="4" estimator_minimum="0" estimator_curve="0.4" gamma_threshold="0.15" cam_zpos="0" cam_persp="0" cam_yaw="0" cam_pitch="0" cam_dof="0" blur_curve="0" palette_mode="linear" interpolation="linear" interpolation_type="log" plugins="elliptic linear julian" new_linear="1" curves="0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 " overall_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 " red_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 " green_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 " blue_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 ">
+   <xform weight="0.166667" color="0.694118" var_color="1" color_speed="0.8" symmetry="-0.6" name="" animate="0" elliptic="1" coefs="0.666667 0 0 0.666667 1 0" opacity="1"/>
+   <xform weight="0.166667" color="0" var_color="1" color_speed="0.8" symmetry="-0.6" name="" animate="0" elliptic="1" coefs="-0.666667 -5.82818e-08 5.82818e-08 -0.666667 -1 0" opacity="1"/>
+   <xform weight="0.166667" color="0.909804" var_color="1" color_speed="0.2" symmetry="0.6" name="" animate="0" linear="1" coefs="1 1.73226e-07 -1.73226e-07 1 -2.005 0" opacity="1"/>
+   <xform weight="0.3" color="0.211765" var_color="1" color_speed="0.6" symmetry="-0.2" name="" animate="1" julian="0.9" julian_dist="1" julian_power="-1" coefs="1.01012 0 0 1.01012 0 0" opacity="1"/>
+   <palette count="256" format="RGB">
+      F3A233F29F2FF1992BF19824F0991EE07520D95C13C34B1C
+      A7663AAD7F4BA084688BBBAE8BBEDA7AACE776A0D66E88B4
+      565A8C344A9029418A1F3A8821398622377D333A7248353F
+      4E3434672A1E75341F8741228C49269A592BA16333B67741
+      C57C46D78B4AE9A151DDB670C9B6A3C4C0B3C2C3B3ABBABE
+      95AABA878E9491675490624F91614E925C3D9C6434A16333
+      A161329957238744197E371B742E17692A1D6A2B18702D18
+      7A3016813916823C17A02B17A22E16A43119A73315A43813
+      93462586442976432976402C793D2B723B2A48343D273777
+      1E337A222D6C1713151413132B15145E2017682013752814
+      7829137C32137D34137B361C77321E6E2F1B6B2E1B703722
+      73382875402E57505F33468C404F89775455855847966748
+      B27E4BCD803ADB8B3BEC9F3EF0A543F0A33EE69B43CF873E
+      C27734AB652EB84C25B33A15B63814AC3013AF3215B53815
+      B73A13BD4417C9521AD67E35E8963DF3A846F2B14FF1AA4C
+      D6964AC8874AAF804BA478599161506B6B83808AB084B4CA
+      8CC8D78DCBE691CED3A7D4B3B4DFB1B8DDB0C1DECBAFD6F4
+      97D2F194D1EE83C1F47FBDF47CB5F47AAADD8085A38A5D57
+      8353447946307946318253466D656E3B4F922F448C293E8A
+      223680203072141628131313131313191413341D27403647
+      46528B717BA393A5C396AED18793B75B6693374A902D4289
+      2A3F8C3742807E4E3E7B4A34814D38956346AC7D4AAE8350
+      CD9451EBC26FF0C77EEFE88AF2DE9FD4D8BFBBD9BFCACBAC
+      D3A173C57F4EBD612AC04915C04315C04113BA4213B34013
+      B14213B64314C14916D07123E48C36EEA040EEA44ADB9A4B
+      CE9655BEAD93B8BFAE98A6C08C9BB0A17A609CBDC8A6C0DD
+      A4CAEF91C3E580B9D48192A58F5E51753E2D6022172D1717
+      1313132D1717602217753E2D8F5E518192A580B9D491C3E5
+      A4CAEFA6C0DD9CBDC8ABBAC3B8B3ACAD9475A87858AB724A
+      9F663D9D5326B64914C04616C64913D14C15E36514E57E26
+      F08F29F1A638F5B141F1B040F1A848E8A44FD49653B7A37F
+      989CB293A0B8AD9C88A77C63B18453D08946D98C3DE7983A
+   </palette>
+</flame>
+<flame version="EMBER-LNX-22.21.4.2" time="40" name="Flame_2021-12-03-132321_1" size="1739 1310" center="0 0" scale="740" rotate="0" supersample="2" filter="1" filter_shape="gaussian" temporal_filter_type="box" temporal_filter_width="1" quality="1000" temporal_samples="100" sub_batch_size="10240" fuse="15" rand_range="1" background="0 0 0" brightness="4" gamma="4" highlight_power="1" logscale_k2="0" vibrancy="1" estimator_radius="0" estimator_minimum="0" estimator_curve="0.4" gamma_threshold="0.1" cam_zpos="0" cam_persp="0" cam_yaw="0" cam_pitch="0" cam_dof="0" blur_curve="0" palette_mode="linear" interpolation="linear" interpolation_type="log" plugins="pre_Lissajous pre_CircleRand linear post_dc_bubble" new_linear="1" curves="0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 " overall_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 " red_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 " green_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 " blue_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 ">
    <xform weight="0.333333" color="0.403604" var_color="1" color_speed="0.5" symmetry="0" name="" animate="1" pre_Lissajous="0.407783" pre_Lissajous_tmin="-0.67456" pre_Lissajous_tmax="0.156896" pre_Lissajous_a="-0.357478" pre_Lissajous_b="0.191861" pre_Lissajous_c="0.33453" pre_Lissajous_d="0.982417" pre_Lissajous_e="0.816269" pre_CircleRand="-0.431279" pre_CircleRand_Sc="0.11761" pre_CircleRand_Dens="0.805705" pre_CircleRand_X="0.876539" pre_CircleRand_Y="0.586863" pre_CircleRand_Seed="1" linear="-0.787078" post_dc_bubble="0.348764" post_dc_bubble_centerx="0.389925" post_dc_bubble_centery="-0.610697" post_dc_bubble_scale="-0.289713" coefs="-0.32667 -0.70182 0.7243 0.898755 0.115134 -0.735563" opacity="1"/>
    <xform weight="0.333333" color="0.740544" var_color="1" color_speed="0.5" symmetry="0" name="" animate="1" pre_Lissajous="0.65391" pre_Lissajous_tmin="0.196672" pre_Lissajous_tmax="0.682824" pre_Lissajous_a="0.900568" pre_Lissajous_b="-0.317054" pre_Lissajous_c="-0.130867" pre_Lissajous_d="-0.99554" pre_Lissajous_e="0.237818" pre_CircleRand="-0.801342" pre_CircleRand_Sc="-0.0116065" pre_CircleRand_Dens="0.728297" pre_CircleRand_X="-0.343222" pre_CircleRand_Y="0.730374" pre_CircleRand_Seed="-1" linear="0.32318" post_dc_bubble="-0.991045" post_dc_bubble_centerx="-0.561871" post_dc_bubble_centery="-0.572661" post_dc_bubble_scale="0.0510885" coefs="0.236591 0.820588 0.638481 -0.198475 0.0151416 0.914954" opacity="1"/>
    <xform weight="0.333333" color="0.112327" var_color="1" color_speed="0.5" symmetry="0" name="" animate="1" pre_Lissajous="0.0557017" pre_Lissajous_tmin="-0.85652" pre_Lissajous_tmax="-0.325672" pre_Lissajous_a="-0.103396" pre_Lissajous_b="-0.49084" pre_Lissajous_c="-0.864564" pre_Lissajous_d="-0.963913" pre_Lissajous_e="0.235084" pre_CircleRand="-0.0728621" pre_CircleRand_Sc="0.259465" pre_CircleRand_Dens="0.172525" pre_CircleRand_X="0.0616653" pre_CircleRand_Y="-0.991799" pre_CircleRand_Seed="0" linear="0.84405" post_dc_bubble="-0.659911" post_dc_bubble_centerx="-0.563425" post_dc_bubble_centery="-0.265736" post_dc_bubble_scale="0.443596" coefs="0.229663 -0.505036 0.584875 0.523214 -0.48341 0.7926" opacity="1"/>
