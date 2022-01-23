@@ -15,7 +15,7 @@ from typing import List, Union
 
 import numpy as np
 
-from .utils import logger
+from fractals.utils import logger
 
 
 def interpolate_linear(
@@ -287,7 +287,11 @@ class XForm:
     def from_element(cls, element: ET.Element):
         coefs = Transform(element.attrib["coefs"])
         color = float(element.attrib["color"])
-        weight = float(element.attrib["weight"])
+        # final xforms don't have weight
+        if "weight" in element.attrib:
+            weight = float(element.attrib["weight"])
+        else:
+            weight = 1.0
         return XForm(element, coefs, color, weight)
 
     def to_element(self) -> ET.Element:
@@ -387,8 +391,8 @@ class Flame:
     @classmethod
     def from_element(cls, element: ET.Element) -> Flame:
         xforms = [XForm.from_element(xform) for xform in element.findall("xform")]
-        final_xform = None
-        if element.find("finalxform"):
+        final_xform: XForm = None
+        if element.find("finalxform") is not None:
             final_xform = XForm.from_element(element.find("finalxform"))
         return Flame(
             element, Palette.from_element(element.find("palette")), xforms, final_xform
@@ -399,7 +403,7 @@ class Flame:
         clone[:] = []
         [clone.append(xform.to_element()) for xform in self.xforms]
         if self.final_xform:
-            clone.extend(self.final_xform.to_element())
+            clone.append(self.final_xform.to_element())
         clone.append(self.palette.to_element())
         return clone
 
@@ -456,7 +460,8 @@ class Flames:
         if not os.path.isdir(self.directory):
             os.makedirs(self.directory)
         root = ET.Element("flames")
-        [root.append(f.to_element()) for f in self.flames]
+        for f in self.flames:
+            root.append(f.to_element())
         logger.info("writing animation file %s", self.filename)
         ET.ElementTree(root).write(self.filename)
 
