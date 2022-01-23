@@ -1934,4 +1934,45 @@
       40EE1B5FFF392CE2521BCD791BDC812BD7C929AEFD3D87FF
    </palette>
 </flame>
+<flame version="EMBER-LNX-22.21.4.2" time="46" name="046" size="4096 2160" center="-0.0249348 0.0400114" scale="110" zoom="2.4" rotate="0" supersample="2" filter="0.1" filter_shape="gaussian" temporal_filter_type="box" temporal_filter_width="1" quality="1000" temporal_samples="100" sub_batch_size="10240" fuse="1" rand_range="1" background="0 0 0" brightness="21.01" gamma="2.5" highlight_power="1" logscale_k2="0" vibrancy="1" estimator_radius="9" estimator_minimum="0" estimator_curve="0.4" gamma_threshold="0.01" cam_zpos="0" cam_persp="0.29" cam_yaw="0.296706" cam_pitch="1.29154" cam_dof="0.02" blur_curve="0" palette_mode="linear" interpolation="linear" interpolation_type="log" plugins="bubbleT3D blur3D julian flatten zscale" new_linear="1" curves="0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 0 0 1 0.25 0.25 1 0.5 0.5 1 0.75 0.75 1 " overall_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 " red_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 " green_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 " blue_curve="0 0 0.25 0.25 0.5 0.5 0.75 0.75 1 1 ">
+   <xform weight="0.45" color="0.92549" var_color="1" color_speed="0.1" symmetry="0.8" name="" animate="1" bubbleT3D="0.2" bubbleT3D_number_of_stripes="22" bubbleT3D_ratio_of_stripes="1.5" bubbleT3D_angle_of_hole="0" bubbleT3D_exponentZ="1" bubbleT3D_symmetryZ="0" bubbleT3D_modusBlur="0" blur3D="0.001" coefs="0.737476 -0.675373 0.675373 0.737476 0 0" chaos="1 0 1 1 1 " opacity="1"/>
+   <xform weight="0.2" color="1" var_color="1" color_speed="0.5" symmetry="0" name="" animate="0" julian="1" julian_dist="-1" julian_power="2" coefs="-0.707107 -0.707107 0.707107 -0.707107 0 -0.3" chaos="1 8.3 1 1 1 " opacity="1"/>
+   <xform weight="0.45" color="0" var_color="1" color_speed="0.5" symmetry="0" name="" animate="1" julian="0.25" julian_dist="1" julian_power="4" coefs="1.62925 -2.27616 2.27616 1.62925 0.00925926 0.0740743" chaos="1 5.2 1 1 1 " opacity="1"/>
+   <xform weight="0.2" color="0" var_color="1" color_speed="0.5" symmetry="0" name="" animate="1" julian="0.45" julian_dist="1" julian_power="25" flatten="1" coefs="0.707107 -0.707107 0.707107 0.707107 0 0" opacity="1"/>
+   <xform weight="0.35" color="0" var_color="1" color_speed="0.5" symmetry="0" name="" animate="1" julian="0.4" julian_dist="-1" julian_power="6" zscale="-1" coefs="-0.250122 0.968215 -0.968215 -0.250122 0 0" chaos="1 2.9 1 1 1 " opacity="1"/>
+   <palette count="256" format="RGB">
+      6D8155687D67647D676475715D757159757158697A40657A
+      3C597A34515E30495534404B404C42504838513725542F25
+      3C2312342712202012201C1C1C181223201C242425282C25
+      34382F38383840494B44505554545E60755E55715544655E
+      40615538514B343C2F2C3025242C12182012171409181812
+      14181217201C182425182825242C2F2C3C42445D55556D71
+      64818D6496A0649EB3609EA958929660796751614240402F
+      2C302524281C1C241C18201C18201C18201C18201C18201C
+      18201C1C201C1C201C1C201C1C1C1C201C1C241C1C301F1C
+      38271C4834254C3825483425402B1C30231C231C1C1F1C1C
+      1F181C18181C13141C13141C17141C14141C17181C181C1C
+      1C1C12242012382B1C44271C48401C54401C50381C54331C
+      48301C38271C28281C24241C1C201C171C1C181C1C1C1C1C
+      20201C24241C282C2528382F34443840554B515D4B6D605E
+      7D85679D9D7195B27AA6B1677D9E677585555C69424D5942
+      3C4038282C2F1C20251B1C251B182520181C201C1C201C25
+      242425282C2F343C2F3C4425504825694C388571418D7D54
+      99704B856C38855C1C92500928343820282F1F1C2F17202F
+      1C343834485E44698D58897A6092836C967A8189717D795E
+      68484B5D402F69501C55331C6D2F127D2E0089480989632F
+      8185558DA25591AA84A6BAAAAEBAAAA9C6BCA1BEC691B1B3
+      7DA6A05C79843C4D5E34304228242F24202520201C1C201C
+      1C1C1C1C1C1C181C1C141C1C14201C171C1C141C1C14181C
+      13181C131C12181C12142012181C121B1C1220201C242425
+      2C303830384B244967285DA0245DAA5C9AC585ADB374AAA9
+      71B29F5896A92C6DA030555E2444421C2C2F20282520241C
+      20201C20201C20201C20241C24241C28281C34301C44441C
+      444C25455D3859654B7169676C8184709697749E8D689197
+      64797A546D67405555343C422C342F24282520241C20241C
+      20242528282F30342F40302F44382540382544442538341C
+      282C252C1F252820252C302F38402F495542545D42595D38
+      6D642F75643879794B757D3869694B595D425D654260694B
+   </palette>
+</flame>
 </flames>
