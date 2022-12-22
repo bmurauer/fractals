@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ET
 from typing import Optional
 
 logger = logging.getLogger("Logger")
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 formatter = logging.Formatter(
     "%(asctime)s %(levelname)s: %(message)s", datefmt="%Y%m%d-%H:%M:%S"
 )

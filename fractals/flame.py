@@ -17,6 +17,8 @@ import numpy as np
 
 from fractals.utils import logger
 
+FPS = 30
+
 
 def interpolate_linear(
     value_from: Union[Transform, float],
@@ -25,18 +27,25 @@ def interpolate_linear(
     frame: int,
     total_frames: int,
 ):
+    """
+    Splits total_frames into n_repetitions sections.
+    Each section is then split into an "ascending" and "descending" half.
+    """
     frames_per_repetition = total_frames / n_repetitions
     frame_in_repetition = frame % frames_per_repetition
 
+    diff = value_to - value_from
     value_to -= value_from
 
     if (frame % frames_per_repetition) <= frames_per_repetition / 2:
-        return value_from + value_to * frame_in_repetition * 2 / frames_per_repetition
+        # ascending half
+        return value_from + diff * frame_in_repetition * 2 / frames_per_repetition
     else:
+        # descending half
         return (
             value_from
-            + value_to * 2
-            - value_to * frame_in_repetition * 2 / frames_per_repetition
+            + diff * 2
+            - diff * frame_in_repetition * 2 / frames_per_repetition
         )
 
 
@@ -62,9 +71,45 @@ def rotate(
     n_rotations: int,
     frame: int,
     total_frames: int,
+    bpm: float = None,
+    bumpyness: float = 1.0,
 ):
-    value.rotate(frame * n_rotations * 2 * math.pi / total_frames)
+    value.rotate(interpolate_sigmoid(frame, total_frames, bpm, bumpyness) * 2 * math.pi)
     return value
+
+
+def interpolate_sigmoid(frame, total_frames, bpm, bumpyness):
+    """
+    Returns a smooth sigmoid function ramping up to the desired end value.
+    """
+
+    linear = frame / total_frames
+
+    if not bpm:
+        return linear
+
+    # e.g., bpm=120 means two beats per second, means 15 frames per beat
+    frames_per_beat = FPS / (bpm / 60)
+    n_beats: int = math.ceil(total_frames / frames_per_beat)
+    # we are in this beat right now:
+    beat_idx = frame // frames_per_beat
+    # within the beat, we are currently at frame:
+    frame_in_beat = frame % frames_per_beat
+
+    beat_start_frame = beat_idx * frames_per_beat
+    beat_end_frame = (beat_idx + 1) * frames_per_beat - 1
+    #  start and end of each beat are linear
+    start_value = beat_start_frame / total_frames
+    end_value = beat_end_frame / total_frames
+
+    a = 10 / frames_per_beat
+    sigmoid = (
+        2
+        * (end_value - start_value)
+        / (1 + math.pow(math.e, -(a * (frame_in_beat - frames_per_beat))))
+        + start_value
+    )
+    return sigmoid * bumpyness + linear * (1 - bumpyness)
 
 
 def rotate_vector(vector, rad, rotation_center=None):
@@ -81,7 +126,13 @@ def rotate_vector(vector, rad, rotation_center=None):
 
 
 def scale(
-    value: Transform, factor: float, n_repetitions: int, frame: int, total_frames: int
+    value: Transform,
+    factor: float,
+    n_repetitions: int,
+    frame: int,
+    total_frames: int,
+    bpm: float = None,
+    bumpyness: float = 0.5,
 ):
     target = deepcopy(value)
     target.coefs[0][0] *= factor
@@ -327,9 +378,16 @@ class XForm:
             self.coefs = orbit(self.coefs, radius, n_reps, frame, total_frames)
 
         if "scale" in self.animations:
-            factor = self.animations["scale"]["factor"]
-            n_reps = self.animations["scale"]["n_repetitions"]
-            self.coefs = scale(self.coefs, factor, n_reps, frame, total_frames)
+            sconf = self.animations["scale"]
+            self.coefs = scale(
+                self.coefs,
+                sconf["factor"],
+                sconf["n_repetitions"],
+                frame,
+                total_frames,
+                sconf["bpm"],
+                sconf["bumpyness"],
+            )
 
         if "translate" in self.animations:
             target = self.animations["translate"]["target"]
@@ -340,26 +398,53 @@ class XForm:
 
         if "rotation" in self.animations:
             n_rotations = self.animations["rotation"]["n_rotations"]
-            self.coefs = rotate(self.coefs, n_rotations, frame, total_frames)
+            self.coefs = rotate(
+                self.coefs,
+                n_rotations,
+                frame,
+                total_frames,
+                self.animations["rotation"]["bpm"],
+                self.animations["rotation"]["bumpyness"],
+            )
 
-    def add_orbit_animation(self, radius, n_repetitions: int = 1):
-        self.animations["orbit"] = dict(radius=radius, n_repetitions=n_repetitions)
+    def add_orbit_animation(self, radius, n_repetitions: int = 1, bpm: float = None):
+        self.animations["orbit"] = dict(
+            radius=radius, n_repetitions=n_repetitions, bpm=bpm
+        )
 
-    def add_scale_animation(self, factor, n_repetitions: int = 1):
-        self.animations["scale"] = dict(factor=factor, n_repetitions=n_repetitions)
+    def add_scale_animation(
+        self, factor, n_repetitions: int = 1, bpm: float = None, bumpyness: float = 0.5
+    ):
+        self.animations["scale"] = dict(
+            factor=factor, n_repetitions=n_repetitions, bpm=bpm, bumpyness=bumpyness
+        )
 
-    def add_attr_animation(self, attribute, target: float, n_repetitions: int = 1):
+    def add_attr_animation(
+        self, attribute, target: float, n_repetitions: int = 1, bpm: float = None
+    ):
         if "attrib" not in self.animations:
             self.animations["attrib"] = dict()
         self.animations["attrib"][attribute] = dict(
-            target=target, n_repetitions=n_repetitions
+            target=target, n_repetitions=n_repetitions, bpm=bpm
         )
 
-    def add_translation_animation(self, target: Transform, n_repetitions: int = 1):
-        self.animations["translate"] = dict(target=target, n_repetitions=n_repetitions)
+    def add_translation_animation(
+        self,
+        target: Transform,
+        n_repetitions: int = 1,
+        bpm: float = None,
+        bumpyness: float = 0.5,
+    ):
+        self.animations["translate"] = dict(
+            target=target, n_repetitions=n_repetitions, bpm=bpm, bumpyness=bumpyness
+        )
 
-    def add_rotation_animation(self, n_rotations: int = 1):
-        self.animations["rotation"] = dict(n_rotations=n_rotations)
+    def add_rotation_animation(
+        self, n_rotations: int = 1, bpm: float = None, bumpyness: float = 0.5
+    ):
+        self.animations["rotation"] = dict(
+            n_rotations=n_rotations, bpm=bpm, bumpyness=bumpyness
+        )
 
     def __repr__(self):
         return ET.tostring(self.to_element(), encoding="utf-8").decode()
@@ -377,25 +462,37 @@ class Flame:
         palette: Palette,
         xforms: List[XForm],
         final_xform: XForm,
+        draft: bool = False,
     ):
         self.element: ET.Element = element
         self.palette: Palette = palette
         self.xforms: List[XForm] = xforms
         self.final_xform: XForm = final_xform
         self.animations = {}
+        self.draft = draft
 
-        if element.attrib["size"] != "4096 2160":
-            logger.warn("Not a 4k size: %s - overwriting!", element.attrib["size"])
-            self.element.attrib["size"] = "4096 2160"
+        if draft:
+            forced_image_size = "800 600"
+        else:
+            forced_image_size = "4096 2160"
+        if element.attrib["size"] != forced_image_size:
+            logger.warn(
+                "overwriting size %s to %s", element.attrib["size"], forced_image_size
+            )
+            self.element.attrib["size"] = forced_image_size
 
     @classmethod
-    def from_element(cls, element: ET.Element) -> Flame:
+    def from_element(cls, element: ET.Element, draft: bool = False) -> Flame:
         xforms = [XForm.from_element(xform) for xform in element.findall("xform")]
         final_xform: XForm = None
         if element.find("finalxform") is not None:
             final_xform = XForm.from_element(element.find("finalxform"))
         return Flame(
-            element, Palette.from_element(element.find("palette")), xforms, final_xform
+            element,
+            Palette.from_element(element.find("palette")),
+            xforms,
+            final_xform,
+            draft=draft,
         )
 
     def to_element(self) -> ET.Element:
@@ -407,11 +504,11 @@ class Flame:
         clone.append(self.palette.to_element())
         return clone
 
-    def add_rotation_animation(self, n_rotations: int = 1):
-        self.animations["rotation"] = dict(n_rotations=n_rotations)
+    def add_rotation_animation(self, n_rotations: int = 1, bpm: float = None):
+        self.animations["rotation"] = dict(n_rotations=n_rotations, bpm=bpm)
 
-    def add_palette_rotation_animation(self, n_rotations: int = 1):
-        self.animations["palette"] = dict(n_rotations=n_rotations)
+    def add_palette_rotation_animation(self, n_rotations: int = 1, bpm: float = None):
+        self.animations["palette"] = dict(n_rotations=n_rotations, bpm=bpm)
 
     def animate(self, total_frames):
         result: List[Flame] = []
@@ -430,10 +527,12 @@ class Flame:
             for xform in clone.xforms:
                 xform.animate(frame, total_frames)
             result.append(clone)
+        draft = "_draft" if self.draft else ""
         return Flames(
             result,
             f'color-{self.element.attrib["name"]}-{get_time()}',
-            movie_file_name=self.element.attrib["name"] + ".mp4",
+            movie_file_name="_" + self.element.attrib["name"] + draft + ".mp4",
+            draft=self.draft,
         )
 
     def __repr__(self):
@@ -448,13 +547,20 @@ class Flames:
         quality: int = 1000,
         supersample: int = 2,
         movie_file_name: str = "animation.mp4",
+        draft: bool = False,
     ):
         self.flames = flames
         self.directory = directory
         self.filename = os.path.join(self.directory, "animation.flame")
         self.moviename = os.path.join(self.directory, movie_file_name)
-        self.quality = quality
-        self.supersample = supersample
+
+        if draft:
+            logger.info("DRAFT mode is on. Requced image size and quality.")
+            self.quality = 100
+            self.supersample = 1
+        else:
+            self.quality = quality
+            self.supersample = supersample
 
     def write_file(self):
         if not os.path.isdir(self.directory):
@@ -468,6 +574,7 @@ class Flames:
     def get_last_rendered_flame(self) -> int:
         pngs = sorted(glob(self.directory + "/*.png"))
         if not pngs:
+            logger.debug("did not find any pngs in %s", self.directory)
             return 0
         last_png_name = os.path.basename(pngs[-1])
         pattern = r"(?P<flame_id>\d*).png"
@@ -476,8 +583,17 @@ class Flames:
             last_flame_id = match["flame_id"]
             # check if last_flame_id is actually in the flame file
             for idx, f in enumerate(self.flames):
-                if f.element.attrib["name"] == last_flame_id:
+                if f.element.attrib["time"] == last_flame_id:
                     return idx + 1  # the last found flame should not be rendered again
+            logger.debug(
+                "did not find the last flame id (%s) in the names of flames in this animation",
+                last_flame_id,
+            )
+            logger.debug([f.element.attrib["time"] for f in self.flames])
+        else:
+            logger.debug(
+                "did not find a match for pattern %s in %s", pattern, last_png_name
+            )
         return 0
 
     def render(self):
@@ -505,10 +621,15 @@ class Flames:
         sp.Popen(command).communicate()
 
     def convert_to_movie(self):
+        pattern = (
+            r"%0"
+            + str(math.floor(math.log10(self.get_last_rendered_flame())) + 1)
+            + "d.png"
+        )
         command = [
             "ffmpeg",
             "-i",
-            f'{os.path.join(self.directory, r"%04d.png")}',
+            f"{os.path.join(self.directory, pattern)}",
             "-i",
             "logo/logo.png",
             "-filter_complex",
