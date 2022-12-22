@@ -7,6 +7,7 @@ import os
 import random
 import re
 import subprocess as sp
+import sys
 import xml.etree.ElementTree as ET
 from copy import deepcopy
 from glob import glob
@@ -26,27 +27,29 @@ def interpolate_linear(
     n_repetitions: int,
     frame: int,
     total_frames: int,
+    bpm: float = None,
+    bumpyness: float = 0.5,
 ):
     """
     Splits total_frames into n_repetitions sections.
     Each section is then split into an "ascending" and "descending" half.
     """
+
     frames_per_repetition = total_frames / n_repetitions
+    current_repetition = frame // frames_per_repetition
     frame_in_repetition = frame % frames_per_repetition
 
+    factor = beating_interpolation(
+        frame_in_repetition, frames_per_repetition, bpm, bumpyness
+    )
     diff = value_to - value_from
-    value_to -= value_from
 
     if (frame % frames_per_repetition) <= frames_per_repetition / 2:
         # ascending half
-        return value_from + diff * frame_in_repetition * 2 / frames_per_repetition
+        return value_from + diff * 2 * factor
     else:
         # descending half
-        return (
-            value_from
-            + diff * 2
-            - diff * frame_in_repetition * 2 / frames_per_repetition
-        )
+        return value_from - diff * 2 * factor + diff * 2
 
 
 def interpolate_sinusoidal(
@@ -55,6 +58,8 @@ def interpolate_sinusoidal(
     frame: int,
     n_repetitions: int,
     total_frames: int,
+    bpm: float = None,
+    bumpyness: float = 0.5,
 ):
     # we need a function that behaves like a sinus to smoothly transition from 0 to 1
     def smooth(x):
@@ -74,23 +79,36 @@ def rotate(
     bpm: float = None,
     bumpyness: float = 1.0,
 ):
-    value.rotate(interpolate_sigmoid(frame, total_frames, bpm, bumpyness) * 2 * math.pi)
+    value.rotate(
+        beating_interpolation(frame, total_frames // n_rotations, bpm, bumpyness)
+        * 2
+        * math.pi
+    )
     return value
 
 
-def interpolate_sigmoid(frame, total_frames, bpm, bumpyness):
+def beating_interpolation(frame, total_frames, bpm, bumpyness):
+
     """
     Returns a smooth sigmoid function ramping up to the desired end value.
     """
 
     linear = frame / total_frames
-
     if not bpm:
         return linear
 
     # e.g., bpm=120 means two beats per second, means 15 frames per beat
     frames_per_beat = FPS / (bpm / 60)
-    n_beats: int = math.ceil(total_frames / frames_per_beat)
+
+    if total_frames % frames_per_beat != 0:
+        logger.error(
+            "Can't subdivide %d frames into beats of %d frames",
+            total_frames,
+            frames_per_beat,
+        )
+        sys.exit(1)
+
+    n_beats: int = total_frames // frames_per_beat
     # we are in this beat right now:
     beat_idx = frame // frames_per_beat
     # within the beat, we are currently at frame:
@@ -138,7 +156,9 @@ def scale(
     target.coefs[0][0] *= factor
     target.coefs[1][1] *= factor
 
-    return interpolate_linear(value, target, n_repetitions, frame, total_frames)
+    return interpolate_linear(
+        value, target, n_repetitions, frame, total_frames, bpm, bumpyness
+    )
 
 
 def orbit(
@@ -356,6 +376,8 @@ class XForm:
             for name, properties in self.animations["attrib"].items():
                 target = properties["target"]
                 n_reps = properties["n_repetitions"]
+                bpm = properties["bpm"]
+                bumpyness = properties["bumpyness"]
                 old = float(self.element.attrib[name])
                 offset = target - old
                 value_as_str = str(
@@ -366,6 +388,8 @@ class XForm:
                             n_repetitions=n_reps,
                             frame=frame,
                             total_frames=total_frames,
+                            bpm=bpm,
+                            bumpyness=bumpyness,
                         ),
                         7,
                     )
@@ -390,10 +414,15 @@ class XForm:
             )
 
         if "translate" in self.animations:
-            target = self.animations["translate"]["target"]
-            n_reps = self.animations["translate"]["n_repetitions"]
+            anim_conf = self.animations["translate"]
             self.coefs = interpolate_linear(
-                self.coefs, target, n_reps, frame, total_frames
+                self.coefs,
+                anim_conf["target"],
+                anim_conf["n_repetitions"],
+                frame,
+                total_frames,
+                anim_conf["bpm"],
+                anim_conf["bumpyness"],
             )
 
         if "rotation" in self.animations:
@@ -420,12 +449,17 @@ class XForm:
         )
 
     def add_attr_animation(
-        self, attribute, target: float, n_repetitions: int = 1, bpm: float = None
+        self,
+        attribute,
+        target: float,
+        n_repetitions: int = 1,
+        bpm: float = None,
+        bumpyness: float = 0.5,
     ):
         if "attrib" not in self.animations:
             self.animations["attrib"] = dict()
         self.animations["attrib"][attribute] = dict(
-            target=target, n_repetitions=n_repetitions, bpm=bpm
+            target=target, n_repetitions=n_repetitions, bpm=bpm, bumpyness=bumpyness
         )
 
     def add_translation_animation(
@@ -594,7 +628,7 @@ class Flames:
             logger.debug(
                 "did not find a match for pattern %s in %s", pattern, last_png_name
             )
-        return 0
+        sys.exit(1)
 
     def render(self):
         self.write_file()
