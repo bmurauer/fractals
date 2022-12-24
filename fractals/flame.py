@@ -21,69 +21,8 @@ from fractals.utils import logger
 FPS = 30
 
 
-# def interpolate_linear(
-#     value_from: Union[Transform, float],
-#     value_to: Union[Transform, float],
-#     n_repetitions: int,
-#     frame: int,
-#     total_frames: int,
-#     bpm: float = None,
-#     bumpyness: float = 0.5,
-# ):
-#     """
-#     Splits total_frames into n_repetitions sections.
-#     Each section is then split into an "ascending" and "descending" half.
-#     """
-
-#     frames_per_repetition = total_frames / n_repetitions
-#     current_repetition = frame // frames_per_repetition
-#     frame_in_repetition = frame % frames_per_repetition
-
-#     factor = beating_interpolation(
-#         frame_in_repetition, frames_per_repetition, bpm, bumpyness
-#     )
-#     diff = value_to - value_from
-
-#     if (frame % frames_per_repetition) <= frames_per_repetition / 2:
-#         # ascending half
-#         return value_from + diff * 2 * factor
-#     else:
-#         # descending half
-#         return value_from - diff * 2 * factor + diff * 2
-
-
-# def interpolate_sinusoidal(
-#     value: float,
-#     offset: float,
-#     frame: int,
-#     n_repetitions: int,
-#     total_frames: int,
-#     bpm: float = None,
-#     bumpyness: float = 0.5,
-# ):
-#     # we need a function that behaves like a sinus to smoothly transition from 0 to 1
-#     def smooth(x):
-#         return (math.cos(math.pi * (2 * x + 1)) + 1) / 2
-
-#     frames_per_repetition = total_frames / n_repetitions
-#     frame_in_repetition = frame % frames_per_repetition
-#     # no check necessary, the cosine function automagically has a bump back to 0.
-#     return value + offset * smooth(frame_in_repetition / frames_per_repetition)
-
-
-def rotate(
-    value: Transform,
-    n_rotations: int,
-    frame: int,
-    total_frames: int,
-    bpm: float = None,
-    bumpyness: float = 0.5,
-):
-
-    factor = repeat_beating_up(
-        0, 1, frame, total_frames, n_rotations, "sigmoid", bpm, bumpyness
-    )
-
+def rotate(value: Transform, n_rotations: int, **kwargs):
+    factor = repeat(n_repetitions=n_rotations, value_from=0, value_to=1, **kwargs)
     value.rotate(factor * 2 * math.pi)
     return value
 
@@ -110,33 +49,39 @@ def ramp_inverse_sigmoid(frame, total_frames, bumpyness):
     return inv_sigmoid * bumpyness + linear * (1 - bumpyness)
 
 
-def repeat_smooth_up(
-    value_from, value_to, frame, total_frames, n_repetitions, method, bumpyness=0.5
+def smooth(
+    frame: int,
+    total_frames: int,
+    value_from: Union[Transform, float],
+    value_to: Union[Transform, float],
+    method: str,
+    method_bumpyness: float = 0.5,
 ):
-    frames_per_repetition = total_frames / n_repetitions
-    current_repetition = frame // frames_per_repetition
-    frame_in_repetition = frame % frames_per_repetition
-
     factor = None
     if method == "linear":
-        factor = ramp_linear(frame_in_repetition, frames_per_repetition)
+        factor = ramp_linear(frame, total_frames)
     elif method == "sinusoidal":
-        factor = ramp_sinusoidal(frame_in_repetition, frames_per_repetition)
+        factor = ramp_sinusoidal(frame, total_frames)
     elif method == "sigmoid":
-        factor = ramp_sigmoid(frame_in_repetition, frames_per_repetition, bumpyness)
+        factor = ramp_sigmoid(frame, total_frames, method_bumpyness)
+    elif method == "inverse_sigmoid":
+        factor = ramp_inverse_sigmoid(frame, total_frames, method_bumpyness)
     else:
         raise Exception("unknown method: " + method)
-
-    diff = value_to - value_from
-    return value_from + diff * factor
+    return value_from + (value_to - value_from) * factor
 
 
-def repeat_beating_up(
-    value_from, value_to, frame, total_frames, method, bpm, bumpyness=0.5
+def beating(
+    frame: int,
+    total_frames: int,
+    value_from: Union[Transform, float],
+    value_to: Union[Transform, float],
+    method: str,
+    method_bumpyness: float = 0.5,
+    bpm: float = None,
+    beat_bumpyness=0.5,
 ):
-    diff = value_to - value_from
     frames_per_beat = FPS / (bpm / 60)
-
     if total_frames % frames_per_beat != 0:
         logger.error(
             "Can't subdivide %d frames into beats of %d frames",
@@ -144,138 +89,77 @@ def repeat_beating_up(
             frames_per_beat,
         )
         sys.exit(1)
-
     n_beats: int = total_frames // frames_per_beat
     # we are in this beat right now:
     current_beat = frame // frames_per_beat
     # within the beat, we are currently at frame:
     frame_in_beat = frame % frames_per_beat
-
     beat_start_frame = current_beat * frames_per_beat
     beat_end_frame = (current_beat + 1) * frames_per_beat - 1
-
-    start_value = repeat_smooth_up(0, 1, beat_start_frame, total_frames, 1, method)
-    end_value = repeat_smooth_up(0, 1, beat_end_frame, total_frames, 1, method)
-
-    bumpy_factor = repeat_smooth_up(
-        start_value,
-        end_value,
-        frame_in_beat,
-        frames_per_beat,
-        1,
-        "sigmoid",
-        bumpyness=1.0,
+    start_value = smooth(
+        frame=beat_start_frame,
+        total_frames=total_frames,
+        value_from=0,
+        value_to=1,
+        method=method,
+        method_bumpyness=method_bumpyness,
     )
-
-    result = value_from + diff * bumpy_factor
-
-    print(
-        frame_in_beat,
-        current_beat,
-        beat_start_frame,
-        beat_end_frame,
-        start_value,
-        end_value,
-        bumpy_factor,
-        result,
+    end_value = smooth(
+        frame=beat_end_frame,
+        total_frames=total_frames,
+        value_from=0,
+        value_to=1,
+        method=method,
+        method_bumpyness=method_bumpyness,
     )
-    return result
+    bumpy_factor = smooth(
+        frame=frame_in_beat,
+        total_frames=frames_per_beat,
+        value_from=start_value,
+        value_to=end_value,
+        method="inverse_sigmoid",
+        method_bumpyness=beat_bumpyness,
+    )
+    return value_from + (value_to - value_from) * bumpy_factor
 
 
-def repeat_smooth_up_down(
-    value_from, value_to, frame, total_frames, n_repetitions, method, bumpyness=0.5
+def repeat(
+    n_repetitions: int, frame: int, total_frames: int, envelope: callable, **kwargs
 ):
+    if total_frames % n_repetitions != 0:
+        raise Exception(
+            "Can't subdivide %d total frames into %d repetitions.",
+            total_frames,
+            n_repetitions,
+        )
+    frames_per_repetition = total_frames / n_repetitions
+    frame_in_repetition = frame % frames_per_repetition
+    return envelope(
+        frame=frame_in_repetition, total_frames=frames_per_repetition, **kwargs
+    )
+
+
+def beating_up_down(frame: int, total_frames: int, value_from, value_to, **kwargs):
 
     frames_per_half = total_frames // 2
     frame_in_half = frame % frames_per_half
 
     if frame < frames_per_half:
-        return repeat_smooth_up(
-            value_from, value_to, frame_in_half, frames_per_half, n_repetitions, method
+        return beating(
+            frame=frame_in_half,
+            total_frames=frames_per_half,
+            value_from=value_from,
+            value_to=value_to,
+            **kwargs,
         )
     else:
-        return repeat_smooth_up(
-            value_to, value_from, frame_in_half, frames_per_half, n_repetitions, method
+        return beating(
+            frame=frame_in_half,
+            total_frames=frames_per_half,
+            value_from=value_to,
+            value_to=value_from,
+            **kwargs,
         )
-
-
-def repeat_beating_up_down(
-    value_from: Union[Transform, float],
-    value_to: Union[Transform, float],
-    frame,
-    total_frames,
-    n_repetitions,
-    method,
-    bpm,
-    bumpyness,
-):
-
-    frames_per_half = total_frames // 2
-    frame_in_half = frame % frames_per_half
-
-    if frame < frames_per_half:
-        return repeat_beating_up(
-            value_from,
-            value_to,
-            frame_in_half,
-            frames_per_half,
-            method,
-            bpm,
-            bumpyness,
-        )
-    else:
-        return repeat_beating_up(
-            value_to,
-            value_from,
-            frame_in_half,
-            frames_per_half,
-            method,
-            bpm,
-            bumpyness,
-        )
-
-
-# def beating_interpolation(frame, total_frames, bpm, bumpyness):
-
-#     """
-#     Returns a smooth sigmoid function ramping up to the desired end value.
-#     """
-
-#     linear = frame / total_frames
-#     if not bpm:
-#         return linear
-
-#     # e.g., bpm=120 means two beats per second, means 15 frames per beat
-#     frames_per_beat = FPS / (bpm / 60)
-
-#     if total_frames % frames_per_beat != 0:
-#         logger.error(
-#             "Can't subdivide %d frames into beats of %d frames",
-#             total_frames,
-#             frames_per_beat,
-#         )
-#         sys.exit(1)
-
-#     n_beats: int = total_frames // frames_per_beat
-#     # we are in this beat right now:
-#     beat_idx = frame // frames_per_beat
-#     # within the beat, we are currently at frame:
-#     frame_in_beat = frame % frames_per_beat
-
-#     beat_start_frame = beat_idx * frames_per_beat
-#     beat_end_frame = (beat_idx + 1) * frames_per_beat - 1
-#     #  start and end of each beat are linear
-#     start_value = beat_start_frame / total_frames
-#     end_value = beat_end_frame / total_frames
-
-#     a = 10 / frames_per_beat
-#     sigmoid = (
-#         2
-#         * (end_value - start_value)
-#         / (1 + math.pow(math.e, -(a * (frame_in_beat - frames_per_beat))))
-#         + start_value
-#     )
-#     return sigmoid * bumpyness + linear * (1 - bumpyness)
 
 
 def rotate_vector(vector, rad, rotation_center=None):
@@ -291,37 +175,20 @@ def rotate_vector(vector, rad, rotation_center=None):
     return x + rotation_center
 
 
-def scale(
-    value: Transform,
-    factor: float,
-    n_repetitions: int,
-    frame: int,
-    total_frames: int,
-    bpm: float = None,
-    bumpyness: float = 0.5,
-):
-
+def scale(value: Transform, factor: float, n_repetitions: int, **kwargs):
     target = deepcopy(value)
-
-    scaled_factor = repeat_beating_up_down(
-        1, factor, frame, total_frames, n_repetitions, "sinusoidal", bpm, bumpyness
+    scaled_factor = repeat(
+        n_repetitions=n_repetitions, value_from=1, value_to=factor, **kwargs
     )
-
     target.coefs[0][0] *= scaled_factor
     target.coefs[1][1] *= scaled_factor
-
     return target
 
 
-def orbit(
-    value: Transform,
-    radius: float,
-    n_rotations: int,
-    frame: int,
-    total_frames: int,
-):
+def orbit(value: Transform, radius: float, n_rotations: int, **kwargs):
+    factor = repeat(n_repetitions=n_rotations, value_from=0, value_to=1, **kwargs)
     x = np.array([radius, 0, 1]).T
-    x = rotate_vector(x, 2 * math.pi * n_rotations * frame / total_frames)
+    x = rotate_vector(x, 2 * math.pi * factor)
     x[0] -= radius
     value.translate(x[0], x[1])
     return value
@@ -525,86 +392,107 @@ class XForm:
 
     def animate(self, frame, total_frames):
         if "attrib" in self.animations:
-            for name, properties in self.animations["attrib"].items():
-                target = properties["target"]
-                n_reps = properties["n_repetitions"]
-                bpm = properties["bpm"]
-                bumpyness = properties["bumpyness"]
-                old = float(self.element.attrib[name])
-                offset = target - old
-                value_as_str = str(
-                    round(
-                        repeat_smooth_up_down(
-                            old,
-                            target,
-                            frame,
-                            total_frames,
-                            n_repetitions,
-                            "sinusoidal",
-                        ),
-                        7,
-                    )
+            for name, conf in self.animations["attrib"].items():
+                # target = conf["target"]
+                # n_reps = conf["n_repetitions"]
+                # bpm = conf["bpm"]
+                # bumpyness = conf["bumpyness"]
+                if name in self.element.attrib:
+                    old = float(self.element.attrib[name])
+                else:
+                    old = 0.0
+                new = repeat(
+                    n_repetitions=conf["n_repetitions"],
+                    frame=frame,
+                    total_frames=total_frames,
+                    envelope=beating_up_down,
+                    value_from=old,
+                    value_to=conf["target"],
+                    bpm=conf["bpm"],
+                    beat_bumpyness=conf["beat_bumpyness"],
+                    method="sinusoidal",
                 )
-                self.element.attrib[name] = value_as_str
+                self.element.attrib[name] = str(round(new, 7))
 
         if "orbit" in self.animations:
-            radius = self.animations["orbit"]["radius"]
-            n_reps = self.animations["orbit"]["n_repetitions"]
-            self.coefs = orbit(self.coefs, radius, n_reps, frame, total_frames)
+            conf = self.animations["orbit"]
+            self.coefs = orbit(
+                value=self.coefs,
+                frame=frame,
+                total_frames=total_frames,
+                radius=conf["radius"],
+                n_rotations=conf["n_repetitions"],
+                method="sinusoidal",
+                envelope=beating,
+                bpm=conf["bpm"],
+                beat_bumpyness=conf["beat_bumpyness"],
+            )
 
         if "scale" in self.animations:
             sconf = self.animations["scale"]
             self.coefs = scale(
-                self.coefs,
-                sconf["factor"],
-                sconf["n_repetitions"],
-                frame,
-                total_frames,
-                sconf["bpm"],
-                sconf["bumpyness"],
+                value=self.coefs,
+                factor=sconf["factor"],
+                n_repetitions=sconf["n_repetitions"],
+                frame=frame,
+                total_frames=total_frames,
+                bpm=sconf["bpm"],
+                beat_bumpyness=sconf["bumpyness"],
+                method=sconf["method"],
+                envelope=sconf["envelope"],
             )
 
         if "translate" in self.animations:
-            anim_conf = self.animations["translate"]
-            # self.coefs = interpolate_linear(
-            #     self.coefs,
-            #     anim_conf["target"],
-            #     anim_conf["n_repetitions"],
-            #     frame,
-            #     total_frames,
-            #     anim_conf["bpm"],
-            #     anim_conf["bumpyness"],
-            # )
-            self.coefs = repeat_smooth_up_down(
-                self.coefs,
-                anim_conf["target"],
-                frame,
-                total_frames,
-                anim_conf["n_repetitions"],
-                "sinusoidal",
+            conf = self.animations["translate"]
+            self.coefs = repeat(
+                value_from=self.coefs,
+                value_to=self.coefs + conf["target"],
+                frame=frame,
+                total_frames=total_frames,
+                n_repetitions=conf["n_repetitions"],
+                method=conf["method"],
+                envelope=conf["envelope"],
+                bpm=conf["bpm"],
+                beat_bumpyness=conf["beat_bumpyness"],
             )
 
         if "rotation" in self.animations:
-            n_rotations = self.animations["rotation"]["n_rotations"]
+            conf = self.animations["rotation"]
             self.coefs = rotate(
-                self.coefs,
-                n_rotations,
-                frame,
-                total_frames,
-                self.animations["rotation"]["bpm"],
-                self.animations["rotation"]["bumpyness"],
+                value=self.coefs,
+                n_rotations=conf["n_rotations"],
+                frame=frame,
+                total_frames=total_frames,
+                bpm=conf["bpm"],
+                beat_bumpyness=conf["beat_bumpyness"],
+                method=conf["method"],
+                envelope=conf["envelope"],
             )
 
-    def add_orbit_animation(self, radius, n_repetitions: int = 1, bpm: float = None):
+    def add_orbit_animation(
+        self,
+        radius,
+        n_repetitions: int = 1,
+        bpm: float = None,
+        beat_bumpyness: float = 0.5,
+    ):
         self.animations["orbit"] = dict(
-            radius=radius, n_repetitions=n_repetitions, bpm=bpm
+            radius=radius,
+            n_repetitions=n_repetitions,
+            bpm=bpm,
+            beat_bumpyness=beat_bumpyness,
         )
 
     def add_scale_animation(
         self, factor, n_repetitions: int = 1, bpm: float = None, bumpyness: float = 0.5
     ):
         self.animations["scale"] = dict(
-            factor=factor, n_repetitions=n_repetitions, bpm=bpm, bumpyness=bumpyness
+            factor=factor,
+            n_repetitions=n_repetitions,
+            bpm=bpm,
+            bumpyness=bumpyness,
+            method="sinusoidal",
+            envelope=beating_up_down,
         )
 
     def add_attr_animation(
@@ -613,12 +501,15 @@ class XForm:
         target: float,
         n_repetitions: int = 1,
         bpm: float = None,
-        bumpyness: float = 0.5,
+        beat_bumpyness: float = 0.5,
     ):
         if "attrib" not in self.animations:
             self.animations["attrib"] = dict()
         self.animations["attrib"][attribute] = dict(
-            target=target, n_repetitions=n_repetitions, bpm=bpm, bumpyness=bumpyness
+            target=target,
+            n_repetitions=n_repetitions,
+            bpm=bpm,
+            beat_bumpyness=beat_bumpyness,
         )
 
     def add_translation_animation(
@@ -626,17 +517,26 @@ class XForm:
         target: Transform,
         n_repetitions: int = 1,
         bpm: float = None,
-        bumpyness: float = 0.5,
+        beat_bumpyness: float = 0.5,
     ):
         self.animations["translate"] = dict(
-            target=target, n_repetitions=n_repetitions, bpm=bpm, bumpyness=bumpyness
+            target=target,
+            n_repetitions=n_repetitions,
+            method="sinusoidal",
+            envelope=beating_up_down,
+            bpm=bpm,
+            beat_bumpyness=beat_bumpyness,
         )
 
     def add_rotation_animation(
         self, n_rotations: int = 1, bpm: float = None, bumpyness: float = 0.5
     ):
         self.animations["rotation"] = dict(
-            n_rotations=n_rotations, bpm=bpm, bumpyness=bumpyness
+            n_rotations=n_rotations,
+            bpm=bpm,
+            beat_bumpyness=bumpyness,
+            method="linear",
+            envelope=beating,
         )
 
     def __repr__(self):
