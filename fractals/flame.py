@@ -110,6 +110,28 @@ def ramp_inverse_sigmoid(frame, total_frames, bumpyness):
     return inv_sigmoid * bumpyness + linear * (1 - bumpyness)
 
 
+def repeat_smooth_up(
+    value_from, value_to, frame, total_frames, n_repetitions, method, bumpyness=0.5
+):
+    frames_per_repetition = total_frames / n_repetitions
+    current_repetition = frame // frames_per_repetition
+    frame_in_repetition = frame % frames_per_repetition
+
+    factor = None
+    if method == "linear":
+        factor = ramp_linear(frame_in_repetition, frames_per_repetition)
+    elif method == "sinusoidal":
+        factor = ramp_sinusoidal(frame_in_repetition, frames_per_repetition)
+    elif method == "sigmoid":
+        factor = ramp_sigmoid(frame_in_repetition, frames_per_repetition, bumpyness)
+    else:
+        raise Exception("unknown method: " + method)
+
+    diff = value_to - value_from
+    print(value_from, value_to, factor)
+    return value_from + diff * factor
+
+
 def repeat_beating_up(
     value_from, value_to, frame, total_frames, n_repetitions, method, bpm, bumpyness=0.5
 ):
@@ -153,92 +175,63 @@ def repeat_beating_up(
     bumpy_factor = ramp_inverse_sigmoid(frame_in_beat, frames_per_beat, bumpyness)
     # bumpy_factor = ramp_sinusoidal(frame, total_frames)
     diff = value_to - value_from
-    unbumpy_value = value_from + diff * factor
-    result = unbumpy_value + (start_value + (end_value - start_value) * bumpy_factor)
-    print(factor, unbumpy_value, bumpy_factor, result)
+    result = value_from + diff * (factor + bumpy_factor) / 2
     return result
 
 
 def repeat_smooth_up_down(
     value_from, value_to, frame, total_frames, n_repetitions, method, bumpyness=0.5
 ):
-    frames_per_repetition = total_frames / n_repetitions
-    current_repetition = frame // frames_per_repetition
-    frame_in_repetition = frame % frames_per_repetition
 
-    factor = None
-    if method == "linear":
-        factor = ramp_linear(frame, total_frames)
-    elif method == "sinusoidal":
-        factor = ramp_sinusoidal(frame, total_frames)
-    elif method == "sigmoid":
-        factor = ramp_sigmoid(frame, total_frames, bumpyness)
+    frames_per_half = total_frames // 2
+    frame_in_half = frame % frames_per_half
+
+    if frame < frames_per_half:
+        return repeat_smooth_up(
+            value_from, value_to, frame_in_half, frames_per_half, n_repetitions, method
+        )
     else:
-        raise Exception("unknown method: " + method)
-
-    diff = value_to - value_from
-
-    if (frame % frames_per_repetition) <= frames_per_repetition / 2:
-        # ascending half
-        return value_from + diff * 2 * factor
-    else:
-        # descending half
-        return value_from - diff * 2 * factor + diff * 2
+        return repeat_smooth_up(
+            value_to, value_from, frame_in_half, frames_per_half, n_repetitions, method
+        )
 
 
 def repeat_beating_up_down(
-    value_from, value_to, frame, total_frames, n_repetitions, method, bpm, bumpyness
+    value_from: Union[Transform, float],
+    value_to: Union[Transform, float],
+    frame,
+    total_frames,
+    n_repetitions,
+    method,
+    bpm,
+    bumpyness,
 ):
-    frames_per_repetition = total_frames / n_repetitions
-    current_repetition = frame // frames_per_repetition
-    frame_in_repetition = frame % frames_per_repetition
 
-    factor = None
-    if method == "linear":
-        factor = ramp_linear(frame, total_frames)
-    elif method == "sinusoidal":
-        factor = ramp_sinusoidal(frame, total_frames)
-    elif method == "sigmoid":
-        factor = ramp_sigmoid(frame, total_frames, bumpyness)
-    else:
-        raise Exception("unknown method: " + method)
+    frames_per_half = total_frames // 2
+    frame_in_half = frame % frames_per_half
 
-    frames_per_beat = FPS / (bpm / 60)
-
-    if total_frames % frames_per_beat != 0:
-        logger.error(
-            "Can't subdivide %d frames into beats of %d frames",
-            total_frames,
-            frames_per_beat,
+    if frame < frames_per_half:
+        return repeat_beating_up(
+            value_from,
+            value_to,
+            frame_in_half,
+            frames_per_half,
+            n_repetitions,
+            method,
+            bpm,
+            bumpyness,
         )
-        sys.exit(1)
-
-    n_beats: int = frames_per_repetition // frames_per_beat
-    # we are in this beat right now:
-    beat_idx = frame_in_repetition // frames_per_beat
-    # within the beat, we are currently at frame:
-    frame_in_beat = frame_in_repetition % frames_per_beat
-
-    beat_start_frame = beat_idx * frames_per_beat
-    beat_end_frame = (beat_idx + 1) * frames_per_beat - 1
-    #  start and end of each beat are linear
-    start_value = beat_start_frame / frames_per_repetition
-    end_value = beat_end_frame / frames_per_repetition
-
-    # bumpy_factor = ramp_sigmoid(frame_in_beat, frames_per_beat, bumpyness)
-    bumpy_factor = ramp_sinusoidal(frame, total_frames)
-
-    diff = value_to - value_from
-
-    unbumpy_value = None
-    if (frame_in_repetition % frames_per_repetition) <= frames_per_repetition / 2:
-        # ascending half
-        unbumpy_value = value_from + diff * factor
-        return unbumpy_value + (start_value + (end_value - start_value) * bumpy_factor)
     else:
-        # descending half
-        unbumpy_value = value_from + diff * (1 - factor)
-        return unbumpy_value - (start_value + (end_value - start_value) * bumpy_factor)
+        return repeat_beating_up(
+            value_to,
+            value_from,
+            frame_in_half,
+            frames_per_half,
+            n_repetitions,
+            method,
+            bpm,
+            bumpyness,
+        )
 
 
 # def beating_interpolation(frame, total_frames, bpm, bumpyness):
@@ -306,16 +299,17 @@ def scale(
     bpm: float = None,
     bumpyness: float = 0.5,
 ):
-    target = deepcopy(value)
-    target.coefs[0][0] *= factor
-    target.coefs[1][1] *= factor
 
-    # return interpolate_linear(
-    #     value, target, n_repetitions, frame, total_frames, bpm, bumpyness
-    # )
-    return repeat_smooth_up_down(
-        value_from, value_to, frame, total_frames, n_repetitions, "sigmoid"
+    target = deepcopy(value)
+
+    scaled_factor = repeat_beating_up_down(
+        1, factor, frame, total_frames, n_repetitions, "sinusoidal", bpm, bumpyness
     )
+
+    target.coefs[0][0] *= scaled_factor
+    target.coefs[1][1] *= scaled_factor
+
+    return target
 
 
 def orbit(
