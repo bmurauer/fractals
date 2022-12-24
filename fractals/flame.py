@@ -128,27 +128,12 @@ def repeat_smooth_up(
         raise Exception("unknown method: " + method)
 
     diff = value_to - value_from
-    print(value_from, value_to, factor)
     return value_from + diff * factor
 
 
 def repeat_beating_up(
-    value_from, value_to, frame, total_frames, n_repetitions, method, bpm, bumpyness=0.5
+    value_from, value_to, frame, total_frames, method, bpm, bumpyness=0.5
 ):
-    frames_per_repetition = total_frames / n_repetitions
-    current_repetition = frame // frames_per_repetition
-    frame_in_repetition = frame % frames_per_repetition
-
-    factor = None
-    if method == "linear":
-        factor = ramp_linear(frame_in_repetition, frames_per_repetition)
-    elif method == "sinusoidal":
-        factor = ramp_sinusoidal(frame_in_repetition, frames_per_repetition)
-    elif method == "sigmoid":
-        factor = ramp_sigmoid(frame_in_repetition, frames_per_repetition, bumpyness)
-    else:
-        raise Exception("unknown method: " + method)
-
     diff = value_to - value_from
     frames_per_beat = FPS / (bpm / 60)
 
@@ -160,22 +145,40 @@ def repeat_beating_up(
         )
         sys.exit(1)
 
-    n_beats: int = frames_per_repetition // frames_per_beat
+    n_beats: int = total_frames // frames_per_beat
     # we are in this beat right now:
-    beat_idx = frame_in_repetition // frames_per_beat
+    current_beat = frame // frames_per_beat
     # within the beat, we are currently at frame:
-    frame_in_beat = frame_in_repetition % frames_per_beat
+    frame_in_beat = frame % frames_per_beat
 
-    beat_start_frame = beat_idx * frames_per_beat
-    beat_end_frame = (beat_idx + 1) * frames_per_beat - 1
-    #  start and end of each beat are linear
-    start_value = beat_start_frame / frames_per_repetition
-    end_value = beat_end_frame / frames_per_repetition
+    beat_start_frame = current_beat * frames_per_beat
+    beat_end_frame = (current_beat + 1) * frames_per_beat - 1
 
-    bumpy_factor = ramp_inverse_sigmoid(frame_in_beat, frames_per_beat, bumpyness)
-    # bumpy_factor = ramp_sinusoidal(frame, total_frames)
-    diff = value_to - value_from
-    result = value_from + diff * (factor + bumpy_factor) / 2
+    start_value = repeat_smooth_up(0, 1, beat_start_frame, total_frames, 1, method)
+    end_value = repeat_smooth_up(0, 1, beat_end_frame, total_frames, 1, method)
+
+    bumpy_factor = repeat_smooth_up(
+        start_value,
+        end_value,
+        frame_in_beat,
+        frames_per_beat,
+        1,
+        "sigmoid",
+        bumpyness=1.0,
+    )
+
+    result = value_from + diff * bumpy_factor
+
+    print(
+        frame_in_beat,
+        current_beat,
+        beat_start_frame,
+        beat_end_frame,
+        start_value,
+        end_value,
+        bumpy_factor,
+        result,
+    )
     return result
 
 
@@ -216,7 +219,6 @@ def repeat_beating_up_down(
             value_to,
             frame_in_half,
             frames_per_half,
-            n_repetitions,
             method,
             bpm,
             bumpyness,
@@ -227,7 +229,6 @@ def repeat_beating_up_down(
             value_from,
             frame_in_half,
             frames_per_half,
-            n_repetitions,
             method,
             bpm,
             bumpyness,
