@@ -81,6 +81,17 @@ def beating(
     bpm: float = None,
     beat_bumpyness=0.5,
 ):
+
+    if bpm is None or beat_bumpyness == 0:
+        return smooth(
+            frame=frame,
+            total_frames=total_frames,
+            value_from=value_from,
+            value_to=value_to,
+            method=method,
+            method_bumpyness=method_bumpyness,
+        )
+
     frames_per_beat = FPS / (bpm / 60)
     if total_frames % frames_per_beat != 0:
         logger.error(
@@ -185,8 +196,8 @@ def scale(value: Transform, factor: float, n_repetitions: int, **kwargs):
     return target
 
 
-def orbit(value: Transform, radius: float, n_rotations: int, **kwargs):
-    factor = repeat(n_repetitions=n_rotations, value_from=0, value_to=1, **kwargs)
+def orbit(value: Transform, radius: float, n_repetitions: int, **kwargs):
+    factor = repeat(n_repetitions=n_repetitions, value_from=0, value_to=1, **kwargs)
     x = np.array([radius, 0, 1]).T
     x = rotate_vector(x, 2 * math.pi * factor)
     x[0] -= radius
@@ -391,108 +402,73 @@ class XForm:
         return self.element
 
     def animate(self, frame, total_frames):
-        if "attrib" in self.animations:
-            for name, conf in self.animations["attrib"].items():
-                # target = conf["target"]
-                # n_reps = conf["n_repetitions"]
-                # bpm = conf["bpm"]
-                # bumpyness = conf["bumpyness"]
-                if name in self.element.attrib:
-                    old = float(self.element.attrib[name])
-                else:
-                    old = 0.0
-                new = repeat(
-                    n_repetitions=conf["n_repetitions"],
-                    frame=frame,
-                    total_frames=total_frames,
-                    envelope=beating_up_down,
-                    value_from=old,
-                    value_to=conf["target"],
-                    bpm=conf["bpm"],
-                    beat_bumpyness=conf["beat_bumpyness"],
-                    method="sinusoidal",
+
+        for animation, conf in self.animations.items():
+            if animation == "attrib":
+                for name, attrib_conf in conf.items():
+                    old = float(self.element.attrib.get(name) or 0)
+                    new = repeat(
+                        frame=frame,
+                        total_frames=total_frames,
+                        value_from=old,
+                        **attrib_conf,
+                    )
+                    # flame xml parsing only allows 7 decimal places
+                    self.element.attrib[name] = str(round(new, 7))
+            elif animation == "orbit":
+                self.coefs = orbit(
+                    value=self.coefs, frame=frame, total_frames=total_frames, **conf
                 )
-                self.element.attrib[name] = str(round(new, 7))
-
-        if "orbit" in self.animations:
-            conf = self.animations["orbit"]
-            self.coefs = orbit(
-                value=self.coefs,
-                frame=frame,
-                total_frames=total_frames,
-                radius=conf["radius"],
-                n_rotations=conf["n_repetitions"],
-                method="sinusoidal",
-                envelope=beating,
-                bpm=conf["bpm"],
-                beat_bumpyness=conf["beat_bumpyness"],
-            )
-
-        if "scale" in self.animations:
-            sconf = self.animations["scale"]
-            self.coefs = scale(
-                value=self.coefs,
-                factor=sconf["factor"],
-                n_repetitions=sconf["n_repetitions"],
-                frame=frame,
-                total_frames=total_frames,
-                bpm=sconf["bpm"],
-                beat_bumpyness=sconf["bumpyness"],
-                method=sconf["method"],
-                envelope=sconf["envelope"],
-            )
-
-        if "translate" in self.animations:
-            conf = self.animations["translate"]
-            self.coefs = repeat(
-                value_from=self.coefs,
-                value_to=self.coefs + conf["target"],
-                frame=frame,
-                total_frames=total_frames,
-                n_repetitions=conf["n_repetitions"],
-                method=conf["method"],
-                envelope=conf["envelope"],
-                bpm=conf["bpm"],
-                beat_bumpyness=conf["beat_bumpyness"],
-            )
-
-        if "rotation" in self.animations:
-            conf = self.animations["rotation"]
-            self.coefs = rotate(
-                value=self.coefs,
-                n_rotations=conf["n_rotations"],
-                frame=frame,
-                total_frames=total_frames,
-                bpm=conf["bpm"],
-                beat_bumpyness=conf["beat_bumpyness"],
-                method=conf["method"],
-                envelope=conf["envelope"],
-            )
+            elif animation == "translate":
+                self.coefs = repeat(
+                    frame=frame,
+                    value_from=self.coefs,
+                    total_frames=total_frames,
+                    **conf,
+                )
+            elif animation == "scale":
+                self.coefs = scale(
+                    value=self.coefs, frame=frame, total_frames=total_frames, **conf
+                )
+            elif animation == "rotate":
+                self.coefs = rotate(
+                    value=self.coefs, frame=frame, total_frames=total_frames, **conf
+                )
 
     def add_orbit_animation(
         self,
         radius,
         n_repetitions: int = 1,
+        envelope: callable = beating,
+        method: str = "linear",
         bpm: float = None,
         beat_bumpyness: float = 0.5,
     ):
         self.animations["orbit"] = dict(
             radius=radius,
             n_repetitions=n_repetitions,
+            envelope=envelope,
+            method=method,
             bpm=bpm,
             beat_bumpyness=beat_bumpyness,
         )
 
     def add_scale_animation(
-        self, factor, n_repetitions: int = 1, bpm: float = None, bumpyness: float = 0.5
+        self,
+        factor,
+        n_repetitions: int = 1,
+        bpm: float = None,
+        beat_bumpyness: float = 0.5,
+        method: str = "sinusoidal",
+        envelope: callable = beating_up_down,
     ):
         self.animations["scale"] = dict(
             factor=factor,
             n_repetitions=n_repetitions,
             bpm=bpm,
-            bumpyness=bumpyness,
-            method="sinusoidal",
-            envelope=beating_up_down,
+            beat_bumpyness=beat_bumpyness,
+            method=method,
+            envelope=envelope,
         )
 
     def add_attr_animation(
@@ -502,14 +478,18 @@ class XForm:
         n_repetitions: int = 1,
         bpm: float = None,
         beat_bumpyness: float = 0.5,
+        method: str = "sinusoidal",
+        envelope: callable = beating_up_down,
     ):
         if "attrib" not in self.animations:
             self.animations["attrib"] = dict()
         self.animations["attrib"][attribute] = dict(
-            target=target,
+            value_to=target,
             n_repetitions=n_repetitions,
             bpm=bpm,
             beat_bumpyness=beat_bumpyness,
+            envelope=envelope,
+            method=method,
         )
 
     def add_translation_animation(
@@ -518,25 +498,32 @@ class XForm:
         n_repetitions: int = 1,
         bpm: float = None,
         beat_bumpyness: float = 0.5,
+        method: str = "sinusoidal",
+        envelope: callable = beating_up_down,
     ):
         self.animations["translate"] = dict(
-            target=target,
+            value_to=target,
             n_repetitions=n_repetitions,
-            method="sinusoidal",
-            envelope=beating_up_down,
+            method=method,
+            envelope=envelope,
             bpm=bpm,
             beat_bumpyness=beat_bumpyness,
         )
 
     def add_rotation_animation(
-        self, n_rotations: int = 1, bpm: float = None, bumpyness: float = 0.5
+        self,
+        n_rotations: int = 1,
+        bpm: float = None,
+        beat_bumpyness: float = 0.5,
+        method: str = "linear",
+        envelope: callable = beating,
     ):
-        self.animations["rotation"] = dict(
+        self.animations["rotate"] = dict(
             n_rotations=n_rotations,
             bpm=bpm,
-            beat_bumpyness=bumpyness,
-            method="linear",
-            envelope=beating,
+            beat_bumpyness=beat_bumpyness,
+            method=method,
+            envelope=envelope,
         )
 
     def __repr__(self):
@@ -587,6 +574,37 @@ class Flame:
             final_xform,
             draft=draft,
         )
+
+    @classmethod
+    def from_file(
+        cls,
+        file_name: str,
+        flame_name: Optional[str] = None,
+        flame_idx: Optional[int] = None,
+        draft: bool = False,
+    ) -> ET.Element:
+        root = ET.parse(file_name).getroot()
+        if flame_name:
+            flames = [f for f in root if f.attrib["name"] == flame_name]
+            if not flames:
+                raise Exception(
+                    "Could not find flame with name {} in file {}."
+                    "Available flame names:\n{}".format(
+                        flame_name, file_name, [f"\n\t{f.attrib['name']}" for f in root]
+                    )
+                )
+            if len(flames) > 1:
+                raise Exception(
+                    "More than one flame with name {} in file {}".format(
+                        flame_name, file_name
+                    )
+                )
+
+            return Flame.from_element(flames[0], draft=draft)
+        elif flame_idx:
+            return Flame.from_element(root[flame_idx], draft=draft)
+        else:
+            return Flame.from_element(random.choice(root), draft=draft)
 
     def to_element(self) -> ET.Element:
         clone = copy.deepcopy(self.element)
