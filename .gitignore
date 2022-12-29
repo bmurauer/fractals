@@ -3,3 +3,6 @@ rendered/*
 seq-*
 color-*
 rendered-*
+.pytest_cache
+.vscode
+.venv
