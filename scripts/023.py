@@ -8,6 +8,6 @@ flame.xforms[2].add_rotation_animation(2)
 flame.xforms[5].add_orbit_animation(radius=0.002)
 flame.palette.n_rotations = 1
 flames = flame.animate(total_frames=1500)
-flames.write_file()
+# flames.write_file()
 flames.render()
 flames.convert_to_movie()

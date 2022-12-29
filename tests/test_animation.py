@@ -1,10 +1,8 @@
 import math
 
 import numpy as np
-from fractals.flame import (
-    Transform,
-    Flame,
-)
+
+from fractals.flame import Flame, Transform
 from fractals.utils import get_flame_from_file
 
 
@@ -43,7 +41,7 @@ def test_orbit():
 
 def test_linear_animation_transform():
     f = Flame.from_element(get_flame_from_file("heartgrid.flame"))
-    f.xforms[0].coefs = Transform("1 0 0 1 1 0")
+    f.xforms[0].fransform = Transform("1 0 0 1 1 0")
     offset = Transform("0 0 0 0 1 0")
     f.xforms[0].add_translation_animation(offset)
 

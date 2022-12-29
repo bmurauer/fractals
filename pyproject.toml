@@ -8,6 +8,7 @@ authors = ["Benjamin Murauer <b.murauer@posteo.de>"]
 python = ">=3.9,<3.11"
 numpy = "^1.21.4"
 click = "^8.0.3"
+tqdm = "^4.64.1"
 
 [tool.poetry.dev-dependencies]
 black = "^21.10b0"
