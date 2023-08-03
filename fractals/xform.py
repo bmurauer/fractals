@@ -1,11 +1,13 @@
+import abc
 import math
 import xml.etree.ElementTree as ET
+from typing import List, Union
+from copy import deepcopy
 
 import numpy as np
 
 from fractals.transform import Transform
-from fractals.transitions import beating, beating_up_down, repeat
-from fractals.utils import logger, rotate_vector
+from fractals.utils import rotate_vector
 
 
 class XForm:
@@ -20,7 +22,7 @@ class XForm:
         self.transform = transform
         self.color = color
         self.weight = weight
-        self.animations = dict()
+        self.animations: List[Animation] = []
 
     @classmethod
     def from_element(cls, element: ET.Element):
@@ -39,153 +41,128 @@ class XForm:
         self.element.attrib["weight"] = str(self.weight)
         return self.element
 
-    def animate(self, frame, total_frames):
-        for animation, conf in self.animations.items():
-            if animation == "attrib":
-                for name, attrib_conf in conf.items():
-                    old = float(self.element.attrib.get(name) or 0)
-                    new = repeat(
-                        frame=frame,
-                        total_frames=total_frames,
-                        value_from=old,
-                        **attrib_conf,
-                    )
-                    # flame xml parsing only allows 7 decimal places
-                    self.element.attrib[name] = str(round(new, 7))
-            elif animation == "orbit":
-                radius = conf["radius"]
-                del conf["radius"]
-                factor = repeat(
-                    frame=frame,
-                    total_frames=total_frames,
-                    value_from=0,
-                    value_to=1,
-                    **conf,
-                )
-                x = np.array([radius, 0, 1]).T
-                x = rotate_vector(x, 2 * math.pi * factor)
-                x[0] -= radius
-                self.transform.translate(x[0], x[1])
-            elif animation == "translate":
-                self.transform = repeat(
-                    frame=frame,
-                    value_from=self.transform,
-                    total_frames=total_frames,
-                    **conf,
-                )
-            elif animation == "scale":
-                factor = repeat(
-                    frame=frame,
-                    total_frames=total_frames,
-                    **conf,
-                )
-                self.transform.scale(factor)
-            elif animation == "rotate":
-                factor = repeat(
-                    frame=frame,
-                    total_frames=total_frames,
-                    value_from=0,
-                    value_to=1,
-                    **conf,
-                )
-                self.transform.rotate(factor * 2 * math.pi)
-
-    def add_orbit_animation(
-        self,
-        radius: float,
-        n_repetitions: int = 1,
-        envelope: callable = beating,
-        method: str = "linear",
-        bpm: float = None,
-        beat_bumpyness: float = 0.5,
-    ):
-        self.animations["orbit"] = dict(
-            radius=radius,
-            n_repetitions=n_repetitions,
-            envelope=envelope,
-            method=method,
-            bpm=bpm,
-            beat_bumpyness=beat_bumpyness,
-        )
-
-    def add_scale_animation(
-        self,
-        factor,
-        n_repetitions: int = 1,
-        bpm: float = None,
-        beat_bumpyness: float = 0.5,
-        method: str = "sinusoidal",
-        envelope: callable = beating_up_down,
-    ):
-        self.animations["scale"] = dict(
-            value_from=1.0,
-            value_to=factor,
-            n_repetitions=n_repetitions,
-            bpm=bpm,
-            beat_bumpyness=beat_bumpyness,
-            method=method,
-            envelope=envelope,
-        )
-
-    def add_attr_animation(
-        self,
-        attribute,
-        target: float,
-        n_repetitions: int = 1,
-        bpm: float = None,
-        beat_bumpyness: float = 0.5,
-        method: str = "sinusoidal",
-        envelope: callable = beating_up_down,
-    ):
-        if "attrib" not in self.animations:
-            self.animations["attrib"] = dict()
-        self.animations["attrib"][attribute] = dict(
-            value_to=target,
-            n_repetitions=n_repetitions,
-            bpm=bpm,
-            beat_bumpyness=beat_bumpyness,
-            envelope=envelope,
-            method=method,
-        )
-
-    def add_translation_animation(
-        self,
-        target: Transform,
-        n_repetitions: int = 1,
-        bpm: float = None,
-        beat_bumpyness: float = 0.5,
-        method: str = "sinusoidal",
-        envelope: callable = beating_up_down,
-    ):
-        self.animations["translate"] = dict(
-            value_to=target,
-            n_repetitions=n_repetitions,
-            method=method,
-            envelope=envelope,
-            bpm=bpm,
-            beat_bumpyness=beat_bumpyness,
-        )
-
-    def add_rotation_animation(
-        self,
-        n_rotations: int = 1,
-        bpm: float = None,
-        beat_bumpyness: float = 0.5,
-        method: str = "linear",
-        envelope: callable = beating,
-    ):
-        if n_rotations < 1:
-            logger.warn(
-                "illegal number of rotations: %d - not adding animation.", n_rotations
-            )
-            return
-        self.animations["rotate"] = dict(
-            n_repetitions=n_rotations,
-            bpm=bpm,
-            beat_bumpyness=beat_bumpyness,
-            method=method,
-            envelope=envelope,
-        )
+    def animate(self, frame):
+        for animation in self.animations:
+            animation.apply(self, frame)
 
     def __repr__(self):
         return ET.tostring(self.to_element(), encoding="utf-8").decode()
+
+
+class Animation(abc.ABC):
+    def __init__(
+        self,
+        start_frame: int,
+        animation_length: int,
+        reverse: bool,
+        transition: callable,
+        value_from: Union[Transform, float] = 0.0,
+        value_to: Union[Transform, float] = 1.0,
+    ):
+        self.start_frame = start_frame
+        self.end_frame = animation_length + start_frame
+        self.reverse = reverse
+        self.transition = transition
+        self.value_from = value_from
+        self.value_to = value_to
+
+    def apply(self, xform: XForm, current_frame: int):
+        if self.start_frame <= current_frame < self.end_frame:
+            v_from = self.value_from if not self.reverse else self.value_to
+            v_to = self.value_to if not self.reverse else self.value_from
+            factor: Union[Transform, float] = self.transition(
+                frame=current_frame - self.start_frame,
+                total_frames=self.end_frame - self.start_frame,
+                value_from=v_from,
+                value_to=v_to,
+            )
+            self.animate_xform(xform, factor)
+        pass
+
+    @abc.abstractmethod
+    def animate_xform(self, xform: XForm, factor: float):
+        pass
+
+
+class TranslationAnimation(Animation):
+    def __init__(
+        self,
+        start_frame: int,
+        animation_length: int,
+        transition: callable,
+        target_transform: Transform,
+        reverse: bool = False,
+    ):
+        super().__init__(start_frame, animation_length, reverse, transition)
+        self.target_transform = target_transform
+
+    def animate_xform(self, xform: XForm, factor) -> None:
+        result = self.target_transform * factor + xform.transform * (
+            1 - factor
+        )
+        xform.transform.coefs = result.coefs
+
+
+class ScalingAnimation(Animation):
+    def __init__(
+        self,
+        start_frame: int,
+        animation_length: int,
+        transition: callable,
+        attribute: str,
+        value_to: float,
+        reverse: bool = False,
+    ):
+        super().__init__(
+            start_frame, animation_length, reverse, transition, 1.0, value_to
+        )
+        self.attribute = attribute
+
+    def animate_xform(self, xform: XForm, factor) -> None:
+        xform.transform.scale(factor)
+
+
+class RotationAnimation(Animation):
+    def animate_xform(self, xform: XForm, factor) -> None:
+        xform.transform.rotate(factor * 2 * math.pi)
+
+
+class AttributeAnimation(Animation):
+    def __init__(
+        self,
+        start_frame: int,
+        animation_length: int,
+        transition: callable,
+        attribute: str,
+        target: float,
+        reverse: bool = False,
+    ):
+        super().__init__(
+            start_frame, animation_length, reverse, (transition, target)
+        )
+        self.attribute = attribute
+
+    def animate_xform(self, xform: XForm, factor) -> None:
+        xform.element.attrib[self.attribute] = str(round(factor, 7))
+
+
+class OrbitAnimation(Animation):
+    def __init__(
+        self,
+        start_frame: int,
+        animation_length: int,
+        transition: callable,
+        radius: float,
+        reverse: bool = False,
+    ):
+        super().__init__(
+            start_frame, animation_length, reverse, transition, 1.0
+        )
+        self.radius = radius
+
+    def animate_xform(self, xform: XForm, factor) -> None:
+        x = np.array([self.radius, 0, 1]).T
+        x = rotate_vector(x, 2 * math.pi * factor)
+        x[0] -= self.radius
+        xform.transform.translate(x[0], x[1])
+

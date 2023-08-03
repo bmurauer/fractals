@@ -1,4 +1,5 @@
 import sys
+from enum import Enum, auto
 from typing import Union
 
 from fractals.transform import Transform
@@ -13,26 +14,33 @@ from fractals.utils import (
 FPS = 30
 
 
-def smooth(
-    frame: int,
-    total_frames: int,
-    value_from: Union[Transform, float],
-    value_to: Union[Transform, float],
-    method: str,
-    method_bumpyness: float = 0.5,
-) -> float:
-    factor = None
-    if method == "linear":
-        factor = ramp_linear(frame, total_frames)
-    elif method == "sinusoidal":
-        factor = ramp_sinusoidal(frame, total_frames)
-    elif method == "sigmoid":
-        factor = ramp_sigmoid(frame, total_frames, method_bumpyness)
-    elif method == "inverse_sigmoid":
-        factor = ramp_inverse_sigmoid(frame, total_frames, method_bumpyness)
-    else:
-        raise Exception("unknown method: " + method)
-    return value_from + (value_to - value_from) * factor
+class FunctionForm(Enum):
+    LINEAR = auto()
+    SINUSOIDAL = auto()
+    SIGMOID = auto()
+    INVERSE_SIGMOID = auto()
+
+
+def make_transition(method: FunctionForm, bumpyness: float = 0.5):
+    def callback(
+        frame,
+        total_frames,
+        value_from: Union[Transform, float],
+        value_to: Union[Transform, float],
+    ):
+        if method == FunctionForm.LINEAR:
+            factor = ramp_linear(frame, total_frames)
+        elif method == FunctionForm.SINUSOIDAL:
+            factor = ramp_sinusoidal(frame, total_frames)
+        elif method == FunctionForm.SIGMOID:
+            factor = ramp_sigmoid(frame, total_frames, bumpyness)
+        elif method == FunctionForm.INVERSE_SIGMOID:
+            factor = ramp_inverse_sigmoid(frame, total_frames, bumpyness)
+        else:
+            raise Exception("unknown method: " + str(method))
+        return value_from + (value_to - value_from) * factor
+
+    return callback
 
 
 def pulsating(
@@ -54,7 +62,7 @@ def pulsating(
             FPS,
         )
         sys.exit(1)
-    n_beats: int = total_frames // frames_per_beat
+    n_beats: int = int(total_frames // frames_per_beat)
     # we are in this beat right now:
     current_beat = frame // frames_per_beat
     # within the beat, we are currently at frame:
@@ -73,12 +81,11 @@ def beating(
     total_frames: int,
     value_from: Union[Transform, float],
     value_to: Union[Transform, float],
-    method: str,
+    method: FunctionForm,
     method_bumpyness: float = 0.5,
     bpm: float = None,
     beat_bumpyness=0.5,
 ) -> float:
-
     if bpm is None or beat_bumpyness == 0:
         return smooth(
             frame=frame,
@@ -134,7 +141,11 @@ def beating(
 
 
 def repeat(
-    n_repetitions: int, frame: int, total_frames: int, envelope: callable, **kwargs
+    n_repetitions: int,
+    frame: int,
+    total_frames: int,
+    envelope: callable,
+    **kwargs
 ) -> float:
     if total_frames % n_repetitions != 0:
         raise Exception(

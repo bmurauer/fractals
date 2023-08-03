@@ -12,25 +12,29 @@ from tqdm import tqdm
 from fractals.utils import logger
 
 
-class Animation:
+class Video:
     def __init__(
         self,
         flames,
         directory: str,
         quality: int = 1000,
         supersample: int = 2,
-        movie_file_name: str = "animation.mp4",
+        video_file_name: str = "animation.mp4",
         draft: bool = False,
         one_file_per_flame: bool = False,
+        seconds: int = 1200,  # 2 minutes
+        frames_per_second=30,  # reasonable
     ):
         self.flames = flames
         self.directory = directory
-        self.filename = os.path.join(self.directory, "animation.flame")
-        self.moviename = os.path.join(self.directory, movie_file_name)
+        self.flame_file_name = os.path.join(directory, "animation.flame")
+        self.video_file_name = os.path.join(directory, video_file_name)
         self.one_file_per_flame = one_file_per_flame
+        self.seconds = seconds
+        self.frames_per_second = frames_per_second
 
         if draft:
-            logger.info("DRAFT mode is on. Requced image size and quality.")
+            logger.info("DRAFT mode is on. Reduced image size and quality.")
             self.quality = 100
             self.supersample = 1
         else:
@@ -52,8 +56,8 @@ class Animation:
             root = ET.Element("flames")
             for f in self.flames:
                 root.append(f.to_element())
-            logger.info("writing animation file %s", self.filename)
-            ET.ElementTree(root).write(self.filename)
+            logger.info("writing animation file %s", self.flame_file_name)
+            ET.ElementTree(root).write(self.flame_file_name)
 
     def get_last_rendered_flame(self) -> int:
         pngs = sorted(glob(self.directory + "/*.png"))
@@ -117,7 +121,7 @@ class Animation:
                 "emberanimate",
                 "--opencl",
                 "--in",
-                self.filename,
+                self.flame_file_name,
                 "--begin",
                 str(begin),
                 "--quality",
@@ -126,7 +130,7 @@ class Animation:
                 str(self.supersample),
             ]
 
-            logger.info("rendering flames of %s", self.filename)
+            logger.info("rendering flames of %s", self.flame_file_name)
             logger.debug("command used for rendering: \n\n%s\n", " ".join(command))
             sp.Popen(command).communicate()
 
@@ -155,7 +159,7 @@ class Animation:
             "yuv420p",
             "-crf",
             "22",
-            self.moviename,
+            self.video_file_name,
         ]
-        logger.info("combining pngs to mp4 file: %s", self.moviename)
+        logger.info("combining pngs to mp4 file: %s", self.video_file_name)
         sp.Popen(command).communicate()

@@ -10,6 +10,15 @@ from fractals.utils import rotate_vector
 
 class Transform:
     def __init__(self, string: str):
+        """
+
+        :param string:
+            represented by six floats: [1, 2, 3, 4, 5, 6]
+            1 and 2 define the coordinates of the first triangle corner
+            3 and 4 define the coordinates of the second triangle corner
+            5 and 6 define the base of the triangle.
+
+        """
         self.coefs = [float(x) for x in string.split(" ")]
         self.coefs = np.array(self.coefs).reshape(3, 2).T
         self.coefs = np.c_[self.coefs.T, np.ones(3)].T
@@ -81,4 +90,6 @@ class Transform:
         return t
 
     def __repr__(self):
-        return " ".join([str(round(x, 6)) for x in self.coefs[0:2, :].T.flatten()])
+        return " ".join(
+            [str(round(x, 6)) for x in self.coefs[0:2, :].T.flatten()]
+        )
