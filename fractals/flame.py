@@ -66,7 +66,7 @@ class Flame:
     ) -> Flame:
         root = ET.parse(file_name).getroot()
         if flame_name:
-            flames = [f for f in root if f.attrib["name"] == flame_name]
+            flames = [f for f in root if flame_name in f.attrib["name"]]
             if not flames:
                 raise Exception(
                     "Could not find flame with name {} in file {}."
@@ -111,8 +111,8 @@ class Flame:
         for frame in range(total_frames):
             clone = deepcopy(self)
             clone.element.attrib["time"] = str(frame + 1)
-            # if self.draft:
-            #     clone.element.attrib["scale"] = "100"
+            if self.draft:
+                clone.element.attrib["scale"] = "100"
             # if "rotation" in self.animations:
             #     n_rotations = self.animations["rotation"]["n_rotations"]
             #     new_value = 360 * n_rotations * frame / total_frames % 360

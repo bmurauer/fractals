@@ -1,12 +1,30 @@
 from fractals.flame import Flame
-from fractals.utils import get_flame_from_file
+from fractals.transitions import make_transition, FunctionForm
+from fractals.xform import OrbitAnimation, RotationAnimation
 
-xml = get_flame_from_file("flames.flame", "045")
-flame = Flame.from_element(xml)
-flame.add_palette_rotation_animation()
-flame.xforms[0].add_orbit_animation(0.05)
-flame.xforms[1].add_rotation_animation(n_rotations=-1)
-flames = flame.animate(total_frames=1500)
+flame = Flame.from_file("flames.flame", "045", draft=True)
+# flame.add_palette_rotation_animation()
+
+flame.xforms[0].animations = [
+    OrbitAnimation(
+        start_frame=0,
+        animation_length=150,
+        radius=0.05,
+        reverse=False,
+        transition=make_transition(FunctionForm.LINEAR),
+    )
+]
+flame.xforms[1].animations = [
+    RotationAnimation(
+        start_frame=0,
+        animation_length=150,
+        value_to=1.0,
+        reverse=False,
+        transition=make_transition(FunctionForm.SINUSOIDAL),
+    )
+]
+
+flames = flame.animate(total_frames=150)
 
 # flames.write_file()
 flames.render()

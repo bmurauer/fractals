@@ -85,15 +85,8 @@ class Animation(abc.ABC):
 
 
 class TranslationAnimation(Animation):
-    def __init__(
-        self,
-        start_frame: int,
-        animation_length: int,
-        transition: callable,
-        target_transform: Transform,
-        reverse: bool = False,
-    ):
-        super().__init__(start_frame, animation_length, reverse, transition)
+    def __init__(self, target_transform: Transform, **kwargs):
+        super().__init__(**kwargs)
         self.target_transform = target_transform
 
     def animate_xform(self, xform: XForm, factor) -> None:
@@ -104,19 +97,8 @@ class TranslationAnimation(Animation):
 
 
 class ScalingAnimation(Animation):
-    def __init__(
-        self,
-        start_frame: int,
-        animation_length: int,
-        transition: callable,
-        attribute: str,
-        value_to: float,
-        reverse: bool = False,
-    ):
-        super().__init__(
-            start_frame, animation_length, reverse, transition, 1.0, value_to
-        )
-        self.attribute = attribute
+    def __init__(self, value_from: float = 1.0, **kwargs):
+        super().__init__(value_from=value_from, **kwargs)
 
     def animate_xform(self, xform: XForm, factor) -> None:
         xform.transform.scale(factor)
@@ -128,36 +110,21 @@ class RotationAnimation(Animation):
 
 
 class AttributeAnimation(Animation):
-    def __init__(
-        self,
-        start_frame: int,
-        animation_length: int,
-        transition: callable,
-        attribute: str,
-        target: float,
-        reverse: bool = False,
-    ):
-        super().__init__(
-            start_frame, animation_length, reverse, (transition, target)
-        )
+    def __init__(self, attribute: str, **kwargs):
+        super().__init__(**kwargs)
         self.attribute = attribute
+
+    def apply(self, xform: XForm, current_frame: int):
+        self.value_from = float(xform.element.attrib[self.attribute])
+        super().apply(xform, current_frame)
 
     def animate_xform(self, xform: XForm, factor) -> None:
         xform.element.attrib[self.attribute] = str(round(factor, 7))
 
 
 class OrbitAnimation(Animation):
-    def __init__(
-        self,
-        start_frame: int,
-        animation_length: int,
-        transition: callable,
-        radius: float,
-        reverse: bool = False,
-    ):
-        super().__init__(
-            start_frame, animation_length, reverse, transition, 1.0
-        )
+    def __init__(self, radius: float, value_from: float = 1.0, **kwargs):
+        super().__init__(value_from=1.0, **kwargs)
         self.radius = radius
 
     def animate_xform(self, xform: XForm, factor) -> None:
@@ -166,3 +133,41 @@ class OrbitAnimation(Animation):
         x[0] -= self.radius
         xform.transform.translate(x[0], x[1])
 
+
+def loop(
+    cls,
+    animation_length: int,
+    total_frames: int,
+    offset: int = 0,
+    stack: bool = False,
+    **kwargs
+) -> List[Animation]:
+    result = []
+
+    value_from = kwargs.get("value_from")
+    value_to = kwargs.get("value_to")
+    value_diff = 0
+    if stack:
+        value_diff = value_to - value_from
+        del kwargs["value_from"]
+    del kwargs["value_to"]
+    for i in range(total_frames):
+        if i < offset:
+            continue
+        j = i - offset
+        loop_number = i // animation_length
+        frame_in_loop = j % animation_length
+        if frame_in_loop == 0:
+            result.append(
+                cls(
+                    start_frame=loop_number * animation_length,
+                    animation_length=animation_length,
+                    value_from=value_from,
+                    value_to=value_to,
+                    **kwargs
+                )
+            )
+            if stack:
+                value_from += value_diff
+                value_to += value_diff
+    return result
