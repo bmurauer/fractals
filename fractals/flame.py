@@ -98,13 +98,17 @@ class Flame:
         clone.append(self.palette.to_element())
         return clone
 
-    def add_rotation_animation(self, n_rotations: int = 1, bpm: float = None):
-        self.animations["rotation"] = dict(n_rotations=n_rotations, bpm=bpm)
+    # def add_rotation_animation(self, n_rotations: int = 1, bpm: float = None):
+    #     self.animations["rotation"] = dict(n_rotations=n_rotations, bpm=bpm)
 
     def add_palette_rotation_animation(
-        self, n_rotations: int = 1, bpm: float = None
+        self,
+        n_rotations: int = 1,
+        animation_length: int = None,
     ):
-        self.animations["palette"] = dict(n_rotations=n_rotations, bpm=bpm)
+        self.animations["palette"] = dict(
+            n_rotations=n_rotations, animation_length=animation_length
+        )
 
     def animate(self, total_frames: int, directory_name: str = None):
         result: List[Flame] = []
@@ -112,14 +116,15 @@ class Flame:
             clone = deepcopy(self)
             clone.element.attrib["time"] = str(frame + 1)
             if self.draft:
+                clone.element.attrib["zoom"] = "1.2"
                 clone.element.attrib["scale"] = "100"
             # if "rotation" in self.animations:
             #     n_rotations = self.animations["rotation"]["n_rotations"]
             #     new_value = 360 * n_rotations * frame / total_frames % 360
             #     self.element.attrib["rotate"] = str(round(new_value, 4))
-            # if "palette" in self.animations:
-            #     n_rotations = self.animations["palette"]["n_rotations"]
-            #     clone.palette.animate(n_rotations, frame, total_frames)
+            if "palette" in self.animations:
+                n_rotations = self.animations["palette"]["n_rotations"]
+                clone.palette.animate(n_rotations, frame, total_frames)
             for xform in clone.xforms:
                 xform.animate(frame)
             result.append(clone)

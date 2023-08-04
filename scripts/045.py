@@ -1,9 +1,9 @@
 from fractals.flame import Flame
 from fractals.transitions import make_transition, FunctionForm
-from fractals.xform import OrbitAnimation, RotationAnimation
+from fractals.xform import OrbitAnimation, RotationAnimation, loop
 
 flame = Flame.from_file("flames.flame", "045", draft=True)
-# flame.add_palette_rotation_animation()
+flame.add_palette_rotation_animation()
 
 flame.xforms[0].animations = [
     OrbitAnimation(
@@ -14,15 +14,14 @@ flame.xforms[0].animations = [
         transition=make_transition(FunctionForm.LINEAR),
     )
 ]
-flame.xforms[1].animations = [
-    RotationAnimation(
-        start_frame=0,
-        animation_length=150,
-        value_to=1.0,
-        reverse=False,
-        transition=make_transition(FunctionForm.SINUSOIDAL),
-    )
-]
+flame.xforms[1].animations = loop(
+    RotationAnimation,
+    animation_length=50,
+    total_frames=150,
+    value_to=1.0,
+    reverse=False,
+    transition=make_transition(FunctionForm.SIGMOID),
+)
 
 flames = flame.animate(total_frames=150)
 

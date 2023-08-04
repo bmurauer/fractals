@@ -1,5 +1,6 @@
 import abc
 import math
+import sys
 import xml.etree.ElementTree as ET
 from typing import List, Union
 from copy import deepcopy
@@ -8,6 +9,8 @@ import numpy as np
 
 from fractals.transform import Transform
 from fractals.utils import rotate_vector
+
+from logzero import logger
 
 
 class XForm:
@@ -54,8 +57,8 @@ class Animation(abc.ABC):
         self,
         start_frame: int,
         animation_length: int,
-        reverse: bool,
         transition: callable,
+        reverse: bool,
         value_from: Union[Transform, float] = 0.0,
         value_to: Union[Transform, float] = 1.0,
     ):
@@ -85,8 +88,24 @@ class Animation(abc.ABC):
 
 
 class TranslationAnimation(Animation):
-    def __init__(self, target_transform: Transform, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(
+        self,
+        target_transform: Transform,
+        start_frame: int,
+        animation_length: int,
+        transition: callable,
+        reverse: bool,
+        value_from: Union[Transform, float] = 0.0,
+        value_to: Union[Transform, float] = 1.0,
+    ):
+        super().__init__(
+            start_frame=start_frame,
+            animation_length=animation_length,
+            transition=transition,
+            reverse=reverse,
+            value_from=value_from,
+            value_to=value_to,
+        )
         self.target_transform = target_transform
 
     def animate_xform(self, xform: XForm, factor) -> None:
@@ -97,21 +116,70 @@ class TranslationAnimation(Animation):
 
 
 class ScalingAnimation(Animation):
-    def __init__(self, value_from: float = 1.0, **kwargs):
-        super().__init__(value_from=value_from, **kwargs)
+    def __init__(
+        self,
+        start_frame: int,
+        animation_length: int,
+        transition: callable,
+        value_to: Union[Transform, float],
+        value_from: Union[Transform, float] = 1.0,
+        reverse: bool = False,
+    ):
+        super().__init__(
+            start_frame=start_frame,
+            animation_length=animation_length,
+            transition=transition,
+            reverse=reverse,
+            value_from=value_from,
+            value_to=value_to,
+        )
 
     def animate_xform(self, xform: XForm, factor) -> None:
         xform.transform.scale(factor)
 
 
 class RotationAnimation(Animation):
+    def __init__(
+        self,
+        start_frame: int,
+        animation_length: int,
+        transition: callable,
+        reverse: bool = False,
+        value_from: Union[Transform, float] = 0.0,
+        value_to: Union[Transform, float] = 1.0,
+    ):
+        super().__init__(
+            start_frame=start_frame,
+            animation_length=animation_length,
+            transition=transition,
+            reverse=reverse,
+            value_from=value_from,
+            value_to=value_to,
+        )
+
     def animate_xform(self, xform: XForm, factor) -> None:
         xform.transform.rotate(factor * 2 * math.pi)
 
 
 class AttributeAnimation(Animation):
-    def __init__(self, attribute: str, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(
+        self,
+        attribute: str,
+        start_frame: int,
+        animation_length: int,
+        transition: callable,
+        value_to: Union[Transform, float],
+        value_from: Union[Transform, float] = None,
+        reverse: bool = False,
+    ):
+        super().__init__(
+            start_frame=start_frame,
+            animation_length=animation_length,
+            transition=transition,
+            reverse=reverse,
+            value_from=value_from,
+            value_to=value_to,
+        )
         self.attribute = attribute
 
     def apply(self, xform: XForm, current_frame: int):
@@ -123,8 +191,24 @@ class AttributeAnimation(Animation):
 
 
 class OrbitAnimation(Animation):
-    def __init__(self, radius: float, value_from: float = 1.0, **kwargs):
-        super().__init__(value_from=1.0, **kwargs)
+    def __init__(
+        self,
+        radius: float,
+        start_frame: int,
+        animation_length: int,
+        transition: callable,
+        value_to: Union[Transform, float] = 1.0,
+        value_from: Union[Transform, float] = 0.0,
+        reverse: bool = False,
+    ):
+        super().__init__(
+            start_frame=start_frame,
+            animation_length=animation_length,
+            transition=transition,
+            reverse=reverse,
+            value_from=value_from,
+            value_to=value_to,
+        )
         self.radius = radius
 
     def animate_xform(self, xform: XForm, factor) -> None:
@@ -140,17 +224,17 @@ def loop(
     total_frames: int,
     offset: int = 0,
     stack: bool = False,
+    value_to: Union[Transform, float] = 1.0,
+    value_from: Union[Transform, float] = 0.0,
     **kwargs
 ) -> List[Animation]:
     result = []
-
-    value_from = kwargs.get("value_from")
-    value_to = kwargs.get("value_to")
     value_diff = 0
     if stack:
+        if value_from is None:
+            logger.error("when stacking, value_from is needed.")
+            sys.exit(1)
         value_diff = value_to - value_from
-        del kwargs["value_from"]
-    del kwargs["value_to"]
     for i in range(total_frames):
         if i < offset:
             continue
