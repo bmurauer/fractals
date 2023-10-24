@@ -118,10 +118,6 @@ class Flame:
             if self.draft:
                 clone.element.attrib["zoom"] = "1.2"
                 clone.element.attrib["scale"] = "100"
-            # if "rotation" in self.animations:
-            #     n_rotations = self.animations["rotation"]["n_rotations"]
-            #     new_value = 360 * n_rotations * frame / total_frames % 360
-            #     self.element.attrib["rotate"] = str(round(new_value, 4))
             if "palette" in self.animations:
                 n_rotations = self.animations["palette"]["n_rotations"]
                 clone.palette.animate(n_rotations, frame, total_frames)

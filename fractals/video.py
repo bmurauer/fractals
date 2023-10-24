@@ -35,8 +35,8 @@ class Video:
 
         if draft:
             logger.info("DRAFT mode is on. Reduced image size and quality.")
-            self.quality = 100
-            self.supersample = 1
+            self.quality = 10
+            self.supersample = 0
         else:
             self.quality = quality
             self.supersample = supersample
@@ -56,7 +56,11 @@ class Video:
             root = ET.Element("flames")
             for f in self.flames:
                 root.append(f.to_element())
-            logger.info("writing animation file %s", self.flame_file_name)
+            logger.info(
+                "writing %d flames to animation file %s ",
+                len(self.flames),
+                self.flame_file_name,
+            )
             ET.ElementTree(root).write(self.flame_file_name)
 
     def get_last_rendered_flame(self) -> int:
@@ -71,7 +75,9 @@ class Video:
             # check if last_flame_id is actually in the flame file
             for idx, f in enumerate(self.flames):
                 if int(f.element.attrib["time"]) == int(last_flame_id):
-                    return idx + 1  # the last found flame should not be rendered again
+                    return (
+                        idx + 1
+                    )  # the last found flame should not be rendered again
             logger.debug(
                 "did not find the last flame id (%s) in the names of flames in this animation",
                 last_flame_id,
@@ -79,12 +85,13 @@ class Video:
             logger.debug([f.element.attrib["time"] for f in self.flames])
         else:
             logger.debug(
-                "did not find a match for pattern %s in %s", pattern, last_png_name
+                "did not find a match for pattern %s in %s",
+                pattern,
+                last_png_name,
             )
         sys.exit(1)
 
     def render(self, verbose: bool = False):
-
         self.write_file()
 
         if self.one_file_per_flame:
@@ -95,7 +102,9 @@ class Video:
                 if self.directory + f"/{i:05d}.png" not in finished_pngs
             ]
 
-            logger.info("found %d files to be rendered.", len(yet_to_be_renderd))
+            logger.info(
+                "found %d files to be rendered.", len(yet_to_be_renderd)
+            )
 
             for filename in tqdm(yet_to_be_renderd):
                 command = [
@@ -131,7 +140,9 @@ class Video:
             ]
 
             logger.info("rendering flames of %s", self.flame_file_name)
-            logger.debug("command used for rendering: \n\n%s\n", " ".join(command))
+            logger.debug(
+                "command used for rendering: \n\n%s\n", " ".join(command)
+            )
             sp.Popen(command).communicate()
 
     def convert_to_movie(self):
@@ -140,23 +151,25 @@ class Video:
         else:
             pattern = (
                 r"%0"
-                + str(math.floor(math.log10(self.get_last_rendered_flame())) + 1)
+                + str(
+                    math.floor(math.log10(self.get_last_rendered_flame())) + 1
+                )
                 + "d.png"
             )
         command = [
             "ffmpeg",
+            "-framerate",
+            f"{self.frames_per_second}",  # this is needed once for input
             "-i",
             f"{os.path.join(self.directory, pattern)}",
             "-i",
             "logo/logo.png",
             "-filter_complex",
-            "[1]format=rgba,colorchannelmixer=aa=0.2[logo];[0][logo]overlay=W-w-20:H-h-20:format=auto,format=yuv420p",
-            "-r",
-            "25",
+            "[1]format=rgba,colorchannelmixer=aa=0.2[logo];[0]["
+            "logo]overlay=W-w-20:H-h-20:format=auto,format=yuv420p,"
+            f"fps={self.frames_per_second}",
             "-c:v",
             "libx264",
-            "-pix_fmt",
-            "yuv420p",
             "-crf",
             "22",
             self.video_file_name,

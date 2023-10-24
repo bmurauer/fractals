@@ -118,10 +118,10 @@ class TranslationAnimation(Animation):
 class ScalingAnimation(Animation):
     def __init__(
         self,
-        start_frame: int,
-        animation_length: int,
-        transition: callable,
-        value_to: Union[Transform, float],
+        start_frame: int = 0,
+        animation_length: int = 10,
+        transition: callable = None,
+        value_to: Union[Transform, float] = 1.0,
         value_from: Union[Transform, float] = 1.0,
         reverse: bool = False,
     ):
