@@ -66,6 +66,7 @@ flame.xforms[3].animations = listener.loop(
     RotationAnimation,
     amount=0.02,
     value_from=0.0,
+    filter_track_name="Timpani",
     transition=make_transition(FunctionForm.INVERSE_SIGMOID),
 )
 
