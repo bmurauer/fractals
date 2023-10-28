@@ -18,60 +18,24 @@ scaling_kwargs = dict(
 )
 
 flame.xforms[0].animations = [
-    *listener.iterate(
-        ScalingAnimation,
-        filter_track_name="Snare Drum",
-        value_from=1.1,
+    ScalingAnimation(
+        start_frame=0,
         animation_length=15,
-        **scaling_kwargs
-    ),
-]
-flame.xforms[2].animations = [
-    *listener.iterate(
-        ScalingAnimation,
-        filter_track_name="Timpani",
         value_from=1.1,
-        animation_length=24,
-        **scaling_kwargs
+        value_to=1.0,
+        transition=make_transition(FunctionForm.INVERSE_SIGMOID),
     ),
-    *listener.iterate(
-        AttributeAnimation,
-        attribute="julian",
+    ScalingAnimation(
+        start_frame=30,
         animation_length=15,
-        filter_track_name="Snare Drum",
         value_from=1.1,
         value_to=1.0,
         transition=make_transition(FunctionForm.INVERSE_SIGMOID),
     ),
 ]
-flame.xforms[1].animations = [
-    *listener.iterate(
-        ScalingAnimation,
-        filter_track_name="Bass Drum",
-        value_from=1.4,
-        animation_length=90,
-        **scaling_kwargs
-    ),
-    AttributeAnimation(
-        attribute="julian",
-        start_frame=0,
-        animation_length=480,
-        value_from=0.6,
-        value_to=1.65,
-        transition=make_transition(FunctionForm.LINEAR),
-    ),
-]
 
-flame.xforms[3].animations = listener.loop(
-    RotationAnimation,
-    amount=0.02,
-    value_from=0.0,
-    filter_track_name="Timpani",
-    transition=make_transition(FunctionForm.INVERSE_SIGMOID),
-)
+flames = flame.animate(total_frames=60)
 
-flames = flame.animate(total_frames=total_frames)
-
-# flames.write_file()
-flames.render()
-flames.convert_to_movie()
+flames.write_file()
+# flames.render()
+# flames.convert_to_movie()
