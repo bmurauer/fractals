@@ -1,36 +1,29 @@
+from fractals.animation import ScalingAnimation, AttributeAnimation
 from fractals.flame import Flame
 from fractals.midi import MidiListener
-from fractals.transitions import make_transition, FunctionForm
-from fractals.xform import (
-    ScalingAnimation,
-    loop,
-    AttributeAnimation,
-    RotationAnimation,
-)
+from fractals.transitions import FunctionForm
 
 flame = Flame.from_file("flames.flame", "057", draft=True)
-listener = MidiListener("/home/benjamin/documents/midi/midi-test.mid")
-total_frames = listener.get_max_frames()
+# listener = MidiListener("/home/benjamin/documents/midi/midi-test.mid")
+# total_frames = listener.get_max_frames()
 
-scaling_kwargs = dict(
-    value_to=1.0,
-    transition=make_transition(FunctionForm.INVERSE_SIGMOID),
-)
-
-flame.xforms[0].animations = [
-    ScalingAnimation(
+flame.xform_animations = [
+    AttributeAnimation(
+        xform_index=0,
+        attribute="julian",
+        value_from=0.1,
+        value_to=0.5,
         start_frame=0,
-        animation_length=15,
-        value_from=1.1,
-        value_to=1.0,
-        transition=make_transition(FunctionForm.INVERSE_SIGMOID),
+        end_frame=60,
+        method=FunctionForm.LINEAR,
     ),
-    ScalingAnimation(
+    AttributeAnimation(
+        xform_index=0,
+        attribute="julian",
+        value_from=0.8,
         start_frame=30,
-        animation_length=15,
-        value_from=1.1,
-        value_to=1.0,
-        transition=make_transition(FunctionForm.INVERSE_SIGMOID),
+        end_frame=50,
+        method=FunctionForm.SINUSOIDAL,
     ),
 ]
 
