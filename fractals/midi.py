@@ -52,6 +52,7 @@ class MidiListener:
             self.fps,
             self.get_max_frames() / self.fps,
         )
+        # print(self.mid)
 
     def get_max_frames(self) -> int:
         return round(self.tick_to_frame(self.max_ticks))
@@ -68,6 +69,7 @@ class MidiListener:
         trigger: Optional[str] = "note_on",
         value_from: float = 0.0,
         amount: float = 0.1,
+        animation_length: Optional[int] = None,
         **kwargs,
     ):
         if "value_to" in kwargs:
@@ -94,7 +96,8 @@ class MidiListener:
             result.append(
                 animation_class(
                     start_frame=start_frame,
-                    animation_length=end_frame - start_frame,
+                    animation_length=animation_length
+                    or end_frame - start_frame,
                     value_from=value_from,
                     value_to=value_to,
                     **kwargs,

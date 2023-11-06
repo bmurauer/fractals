@@ -6,6 +6,7 @@ from copy import deepcopy
 from datetime import datetime
 from typing import List, Optional
 
+from fractals.animation import Animation
 from fractals.video import Video
 from fractals.palette import Palette
 from fractals.utils import logger
@@ -26,6 +27,7 @@ class Flame:
         self.xforms: List[XForm] = xforms
         self.final_xform: XForm = final_xform
         self.animations = {}
+        self.xform_animations: List[Animation] = []
         self.draft = draft
 
         if draft:
@@ -111,26 +113,25 @@ class Flame:
         )
 
     def animate(self, total_frames: int, directory_name: str = None):
-        result: List[Flame] = []
+        flames: List[Flame] = []
         for frame in range(total_frames):
             clone = deepcopy(self)
             clone.element.attrib["time"] = str(frame + 1)
             if self.draft:
                 clone.element.attrib["zoom"] = "1.2"
                 clone.element.attrib["scale"] = "100"
-            if "palette" in self.animations:
-                n_rotations = self.animations["palette"]["n_rotations"]
-                clone.palette.animate(n_rotations, frame, total_frames)
-            for xform in clone.xforms:
-                xform.animate(frame)
-            result.append(clone)
+            flames.append(clone)
+
+        for animation in self.xform_animations:
+            animation.apply(flames)
+
         time = datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
         dir_name = (
             directory_name or f'rendered-{self.element.attrib["name"]}-{time}'
         )
         draft = "_draft" if self.draft else ""
         return Video(
-            result,
+            flames,
             dir_name,
             video_file_name="_" + self.element.attrib["name"] + draft + ".mp4",
             draft=self.draft,

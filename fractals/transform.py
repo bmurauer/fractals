@@ -1,6 +1,7 @@
 from __future__ import annotations  # forward type hints
 import math
 import random
+from typing import Union
 
 import numpy as np
 from copy import deepcopy

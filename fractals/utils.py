@@ -1,16 +1,8 @@
 import logging
 import math
 
+from logzero import logger
 import numpy as np
-
-logger = logging.getLogger("Logger")
-logger.setLevel(logging.DEBUG)
-formatter = logging.Formatter(
-    "%(asctime)s %(levelname)s: %(message)s", datefmt="%Y%m%d-%H:%M:%S"
-)
-consoleHandler = logging.StreamHandler()
-consoleHandler.setFormatter(formatter)
-logger.addHandler(consoleHandler)
 
 
 def ramp_sinusoidal(frame: int, total_frames: int) -> float:
@@ -21,18 +13,24 @@ def ramp_linear(frame: int, total_frames: int) -> float:
     return frame / total_frames
 
 
-def ramp_sigmoid(frame: int, total_frames: int, bumpyness: float) -> float:
+def ramp_sigmoid(
+    frame: int, total_frames: int, bumpiness: float = 0.5
+) -> float:
     linear = ramp_linear(frame, total_frames)
     sigmoid = 2 / (
         1 + math.pow(math.e, -((10 / total_frames) * (frame - total_frames)))
     )
-    return sigmoid * bumpyness + linear * (1 - bumpyness)
+    return sigmoid * bumpiness + linear * (1 - bumpiness)
 
 
-def ramp_inverse_sigmoid(frame: int, total_frames: int, bumpyness: float) -> float:
+def ramp_inverse_sigmoid(
+    frame: int, total_frames: int, bumpiness: float = 0.5
+) -> float:
     linear = ramp_linear(frame, total_frames)
-    inv_sigmoid = 2 / (1 + math.pow(math.e, -((10 / total_frames) * (frame)))) - 1
-    return inv_sigmoid * bumpyness + linear * (1 - bumpyness)
+    inv_sigmoid = (
+        2 / (1 + math.pow(math.e, -((10 / total_frames) * (frame)))) - 1
+    )
+    return inv_sigmoid * bumpiness + linear * (1 - bumpiness)
 
 
 def rotate_vector(
