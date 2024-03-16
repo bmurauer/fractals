@@ -1,6 +1,7 @@
 from __future__ import annotations  # forward type hints
 
 import random
+import sys
 import xml.etree.ElementTree as ET
 from copy import deepcopy
 from datetime import datetime
@@ -113,17 +114,24 @@ class Flame:
         )
 
     def animate(self, total_frames: int, directory_name: str = None):
+        logger.info("animating")
         flames: List[Flame] = []
+
+        if not self.xform_animations:
+            logger.warn("no animations found. aborting")
+            sys.exit(1)
+
         for frame in range(total_frames):
             clone = deepcopy(self)
             clone.element.attrib["time"] = str(frame + 1)
             if self.draft:
                 clone.element.attrib["zoom"] = "1.2"
                 clone.element.attrib["scale"] = "100"
-            flames.append(clone)
 
-        for animation in self.xform_animations:
-            animation.apply(flames)
+            for i, animation in enumerate(self.xform_animations):
+                animation.apply(frame, clone)
+
+            flames.append(clone)
 
         time = datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
         dir_name = (

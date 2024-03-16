@@ -28,23 +28,17 @@ class Animation(abc.ABC):
         self.method: FunctionForm = method
         self.value_from = value_from
         self.value_to = value_to
-        self.first_xform: Optional[XForm] = None
-        self.last_xform: Optional[XForm] = None
 
     @abc.abstractmethod
     def get_value(self, xform: XForm) -> Union[Transform, float]:
         pass
 
-    def apply(self, flames) -> None:
-        logger.info("ANIMATION for xform %d", self.xform_index)
-        assert len(flames) >= self.end_frame
-        assert len(flames[self.start_frame].xforms) > self.xform_index
-        assert len(flames[self.end_frame - 1].xforms) > self.xform_index
-
-        self.last_xform = flames[self.end_frame - 1].xforms[self.xform_index]
+    def apply(self, frame, flame) -> None:
+        if frame < self.start_frame or frame > self.end_frame:
+            return
 
         if self.value_from is None:
-            first_xform = flames[self.start_frame].xforms[self.xform_index]
+            first_xform = flame.xforms[self.xform_index]
             self.value_from = self.get_value(first_xform)
             logger.info(
                 "set missing value_from to first xframe, =%s",
@@ -52,38 +46,34 @@ class Animation(abc.ABC):
             )
 
         if self.value_to is None:
-            last_xform = flames[self.end_frame].xforms[self.xform_index]
+            last_xform = flame.xforms[self.xform_index]
             self.value_to = self.get_value(last_xform)
             logger.info(
                 "set missing value_to to last xframe, =%s", str(self.value_to)
             )
 
-        for frame in range(self.start_frame, self.end_frame):
-            flame = flames[frame]
-            assert len(flame.xforms) > self.xform_index
-            factor: Union[Transform, float] = transition(
-                method=self.method,
-                frame=frame - self.start_frame,
-                total_frames=self.end_frame - self.start_frame,
-                value_from=0,
-                value_to=1,
-            )
-            new_value = (
-                self.value_from + (self.value_to - self.value_from) * factor
-            )
+        assert len(flame.xforms) > self.xform_index
+        factor: Union[Transform, float] = transition(
+            method=self.method,
+            frame=frame - self.start_frame,
+            total_frames=self.end_frame - self.start_frame,
+            value_from=0,
+            value_to=1,
+        )
+        new_value = (
+            self.value_from + (self.value_to - self.value_from) * factor
+        )
 
-            logger.info(
-                "frame=%d, factor=%f, value_from=%s, value_to=%s, "
-                "new_value=%s",
-                frame,
-                factor,
-                str(self.value_from),
-                str(self.value_to),
-                str(new_value),
-            )
-            xform = flame.xforms[self.xform_index]
-            self.animate_xform(xform, factor, new_value)
-        pass
+        logger.debug(
+            "frame=%d, factor=%f, value_from=%s, value_to=%s, " "new_value=%s",
+            frame,
+            factor,
+            str(self.value_from),
+            str(self.value_to),
+            str(new_value),
+        )
+        xform = flame.xforms[self.xform_index]
+        self.animate_xform(xform, factor, new_value)
 
     @abc.abstractmethod
     def animate_xform(
@@ -109,7 +99,7 @@ class ScalingAnimation(Animation):
     def animate_xform(
         self, xform: XForm, factor, new_value: Union[float, Transform]
     ) -> None:
-        xform.transform.scale(factor)
+        xform.transform.scale(new_value)
 
 
 class RotationAnimation(Animation):
@@ -119,7 +109,7 @@ class RotationAnimation(Animation):
     def animate_xform(
         self, xform: XForm, factor, new_value: Union[float, Transform]
     ) -> None:
-        xform.transform.rotate(factor * 2 * math.pi)
+        xform.transform.rotate(new_value * 2 * math.pi)
 
 
 class AttributeAnimation(Animation):
@@ -161,7 +151,7 @@ def loop(
     stack: bool = False,
     value_to: Union[Transform, float] = 1.0,
     value_from: Union[Transform, float] = 0.0,
-    **kwargs
+    **kwargs,
 ) -> List[Animation]:
     result = []
     value_diff = 0
@@ -183,7 +173,7 @@ def loop(
                     animation_length=animation_length,
                     value_from=value_from,
                     value_to=value_to,
-                    **kwargs
+                    **kwargs,
                 )
             )
             if stack:

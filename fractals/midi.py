@@ -1,7 +1,7 @@
 import math
 import sys
 from abc import ABC, abstractmethod
-from typing import Optional, Dict, Type
+from typing import Optional, Dict, Type, List
 
 from mido import MidiFile
 
@@ -57,8 +57,8 @@ class MidiListener:
     def get_max_frames(self) -> int:
         return round(self.tick_to_frame(self.max_ticks))
 
-    def tick_to_frame(self, tick):
-        return tick * self.tick_duration * self.fps
+    def tick_to_frame(self, tick: int) -> int:
+        return round(tick * self.tick_duration * self.fps)
 
     def loop(
         self,
@@ -96,8 +96,7 @@ class MidiListener:
             result.append(
                 animation_class(
                     start_frame=start_frame,
-                    animation_length=animation_length
-                    or end_frame - start_frame,
+                    end_frame=start_frame + animation_length,
                     value_from=value_from,
                     value_to=value_to,
                     **kwargs,
@@ -109,23 +108,25 @@ class MidiListener:
     def iterate(
         self,
         animation_class: Type,
+        animation_length: int,
         filter_track_name: Optional[str] = None,
         channel: Optional[int] = None,
         filter_note: Optional[int] = None,
         trigger: Optional[str] = "note_on",
-        amount: float = 0.1,
         **kwargs,
     ):
-        if "animation_length" not in kwargs:
-            raise Exception(
-                "in 'iterate' mode, 'animation_length' is " "required."
-            )
         all_frames = self.get_animation_frames(
             filter_track_name, channel, filter_note, trigger
         )
         result = []
         for frame in all_frames:
-            result.append(animation_class(start_frame=frame, **kwargs))
+            result.append(
+                animation_class(
+                    start_frame=frame,
+                    end_frame=frame + animation_length,
+                    **kwargs,
+                )
+            )
         return result
 
     def get_animation_frames(
@@ -134,7 +135,7 @@ class MidiListener:
         channel: Optional[int] = None,
         filter_note: Optional[int] = None,
         trigger: Optional[str] = "note_on",
-    ):
+    ) -> List[int]:
         animations = []
         for track in self.mid.tracks:
             if (
