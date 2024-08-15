@@ -30,7 +30,7 @@ class Palette:
         assert len(colors) == count
         return Palette(count, colors, format)
 
-    def rotate(self, fraction: float) -> List[Color]:
+    def rotate(self, fraction: float) -> None:
         new_colors: List[Color] = []
         # the fraction is a fraction of a full rotation.
         # measured in steps:
@@ -52,19 +52,23 @@ class Palette:
             fraction_between = j - bound_lower
             lower = self.original[bound_lower]
             upper = self.original[bound_upper]
-            new_colors.append(lower.interpolate_towards(upper, fraction_between))
+            new_colors.append(
+                lower.interpolate_towards(upper, fraction_between)
+            )
 
-        return new_colors
+        self.colors = new_colors
 
-    def animate(self, n_rotations: int, frame: int, total_frames: int) -> None:
-        frames_per_rotation = total_frames / n_rotations
-        frame_in_rotation = frame % frames_per_rotation
-        self.colors = self.rotate(frame_in_rotation / frames_per_rotation)
+    # def animate(self, n_rotations: int, frame: int, total_frames: int) -> None:
+    #     frames_per_rotation = total_frames / n_rotations
+    #     frame_in_rotation = frame % frames_per_rotation
+    #     self.colors = self.rotate(frame_in_rotation / frames_per_rotation)
 
     def to_element(self) -> ET.Element:
         palette = ET.Element("palette")
         string = "".join([str(c) for c in self.colors])
-        palette.text = "".join([f"\n      {x}" for x in wrap(string, 48)]) + "\n"
+        palette.text = (
+            "".join([f"\n      {x}" for x in wrap(string, 48)]) + "\n"
+        )
         palette.attrib["count"] = str(self.count)
         return palette
 

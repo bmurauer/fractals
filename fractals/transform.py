@@ -14,7 +14,7 @@ class Transform:
         """
 
         :param string:
-            represented by six floats: [1, 2, 3, 4, 5, 6]
+            represented by six floats: [x0 y0 x1 y1 xb yb]
             1 and 2 define the coordinates of the first triangle corner
             3 and 4 define the coordinates of the second triangle corner
             5 and 6 define the base of the triangle.
@@ -23,6 +23,10 @@ class Transform:
         self.coefs = [float(x) for x in string.split(" ")]
         self.coefs = np.array(self.coefs).reshape(3, 2).T
         self.coefs = np.c_[self.coefs.T, np.ones(3)].T
+
+    @property
+    def origin(self):
+        return np.array([self.coefs[0][2], self.coefs[1][2]])
 
     def rotate(self, radians: float) -> None:
         origin_x = self.coefs[0][2]

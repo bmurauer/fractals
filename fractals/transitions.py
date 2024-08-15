@@ -22,9 +22,9 @@ class FunctionForm(Enum):
 def transition(
     frame: int,
     total_frames: int,
-    value_from: Union[Transform, float],
-    value_to: Union[Transform, float],
     method: FunctionForm,
+    value_from: Union[Transform, float] = 0.0,
+    value_to: Union[Transform, float] = 1.0,
     bumpiness: float = 1.0,
 ):
     if method == FunctionForm.LINEAR:

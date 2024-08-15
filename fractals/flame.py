@@ -7,7 +7,7 @@ from copy import deepcopy
 from datetime import datetime
 from typing import List, Optional
 
-from fractals.animation import Animation
+from fractals.xformanimation import XformAnimation
 from fractals.video import Video
 from fractals.palette import Palette
 from fractals.utils import logger
@@ -27,15 +27,12 @@ class Flame:
         self.palette: Palette = palette
         self.xforms: List[XForm] = xforms
         self.final_xform: XForm = final_xform
-        self.animations = {}
-        self.xform_animations: List[Animation] = []
+        self.flame_animations: List[FlameAnimation] = []
+        self.xform_animations: List[XformAnimation] = []
         self.draft = draft
 
         if draft:
-            forced_image_size = "800 450"
-        else:
-            forced_image_size = "4096 2160"
-        if element.attrib["size"] != forced_image_size:
+            forced_image_size = "450 800"
             logger.warn(
                 "overwriting size %s to %s",
                 element.attrib["size"],
@@ -101,37 +98,24 @@ class Flame:
         clone.append(self.palette.to_element())
         return clone
 
-    # def add_rotation_animation(self, n_rotations: int = 1, bpm: float = None):
-    #     self.animations["rotation"] = dict(n_rotations=n_rotations, bpm=bpm)
-
-    def add_palette_rotation_animation(
-        self,
-        n_rotations: int = 1,
-        animation_length: int = None,
-    ):
-        self.animations["palette"] = dict(
-            n_rotations=n_rotations, animation_length=animation_length
-        )
-
     def animate(self, total_frames: int, directory_name: str = None):
         logger.info("animating")
-        flames: List[Flame] = []
 
         if not self.xform_animations:
             logger.warn("no animations found. aborting")
             sys.exit(1)
 
+        flames: List[Flame] = []
+        last_flame = self
         for frame in range(total_frames):
-            clone = deepcopy(self)
-            clone.element.attrib["time"] = str(frame + 1)
-            if self.draft:
-                clone.element.attrib["zoom"] = "1.2"
-                clone.element.attrib["scale"] = "100"
-
+            flame = deepcopy(last_flame)
+            flame.element.attrib["time"] = str(frame + 1)
             for i, animation in enumerate(self.xform_animations):
-                animation.apply(frame, clone)
-
-            flames.append(clone)
+                animation.apply(frame, flame)
+            for i, animation in enumerate(self.flame_animations):
+                animation.apply(frame, flame)
+            flames.append(flame)
+            last_flame = flame
 
         time = datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
         dir_name = (
