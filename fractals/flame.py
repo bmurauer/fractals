@@ -7,7 +7,7 @@ from copy import deepcopy
 from datetime import datetime
 from typing import List, Optional
 
-from fractals.xformanimation import XformAnimation
+from fractals.animation import XformAnimation
 from fractals.video import Video
 from fractals.palette import Palette
 from fractals.utils import logger
