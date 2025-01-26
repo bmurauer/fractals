@@ -86,8 +86,8 @@ def draw(
     pixels: np.ndarray,
     dim_x: int = 300,
     dim_y: int = 300,
-    samples: int = 100,
-    iterations: int = 50,
+    samples: int = int(1e4),
+    iterations: int = 250,
     gamma: float = 2.0,
 ):
     assert gamma >= 1.0
@@ -104,16 +104,21 @@ def draw(
             flame = random.choices(
                 flames, weights=[flame.p for flame in flames], k=1
             )[0]
-            point = flame.render(point)
+            point = flame.render_images(point)
             if i > 20:
                 x = round(point.x * (dim_x / 2))
+                if x >= dim_x or x < 0:
+                    continue
+
                 y = round(point.y * (dim_y / 2))
+                if y >= dim_y or y < 0:
+                    continue
+
                 freqs[x][y] += 1
                 colors[x][y] = (colors[x][y] + color) / 2
 
     max_freq = np.max(freqs)
     log_max_freq = math.log(max_freq)
-    max_color = np.max(colors)
     inv_gamma = 1.0 / gamma
     palette = get_palette()
 
@@ -122,12 +127,13 @@ def draw(
         for y in range(dim_y):
             if freqs[x][y] == 0:
                 continue
-            freq = freqs[x][y] / max_freq
-            color = colors[x][y] / max_color
+            freq = freqs[x][y]
+            color = colors[x][y]
             if color == 0 or math.log(color) == 0:
                 continue
-            alpha = math.log(freq) / log_max_freq
-            corrected = color * alpha**inv_gamma
+            alpha = (math.log(freq) / log_max_freq) if freq else 0
+            alpha_exp = alpha**inv_gamma
+            corrected = color * alpha_exp
             raws[x][y] = corrected
 
     max_corrected = np.max(raws)
@@ -137,13 +143,12 @@ def draw(
             pixels[x][y] = palette[as_int]
 
 
-dim_x = 300
-dim_y = 300
+dim_x = 400
+dim_y = 400
 sierpinsky_flames = [
-    Flame(p=1.0, variations=[Spherical(0.2, 0.5, 0.0, 0.0, 0.0, 0.5, 0.0)]),
+    Flame(p=1.0, variations=[Linear(1.0, 0.5, 0.0, 0.0, 0.0, 0.5, 0.0)]),
     Flame(p=1.0, variations=[Linear(1.0, 0.5, 0.0, 0.5, 0.0, 0.5, 0.0)]),
     Flame(p=1.0, variations=[Linear(1.0, 0.5, 0.0, 0.0, 0.0, 0.5, 0.5)]),
-    # Flame(p=1.0, variations=[Linear(1.0, 0.5, 0.0, 0.5, 0.0, 0.5, -0.5)]),
 ]
 
 from sdl2 import *
@@ -159,7 +164,7 @@ surf = SDL_GetWindowSurface(win)
 SDL_FillRect(surf, None, 0)
 
 pixels = sdl2.ext.pixels2d(surf)
-draw(sierpinsky_flames, pixels, iterations=400, dim_x=dim_x, dim_y=dim_y)
+draw(sierpinsky_flames, pixels, iterations=100, dim_x=dim_x, dim_y=dim_y)
 
 # signal SDL that surface is ready to be presented on screen
 SDL_UpdateWindowSurface(win, surf)

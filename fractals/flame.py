@@ -4,11 +4,9 @@ import random
 import sys
 import xml.etree.ElementTree as ET
 from copy import deepcopy
-from datetime import datetime
 from typing import List, Optional
 
-from fractals.animation import XformAnimation
-from fractals.video import Video
+from fractals.animation import XformAnimation, FlameAnimation
 from fractals.palette import Palette
 from fractals.utils import logger
 from fractals.xform import XForm
@@ -98,7 +96,7 @@ class Flame:
         clone.append(self.palette.to_element())
         return clone
 
-    def animate(self, total_frames: int, directory_name: str = None):
+    def animate(self, total_frames: int) -> List[Flame]:
         logger.info("animating")
 
         if not self.xform_animations:
@@ -117,17 +115,7 @@ class Flame:
             flames.append(flame)
             last_flame = flame
 
-        time = datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
-        dir_name = (
-            directory_name or f'rendered-{self.element.attrib["name"]}-{time}'
-        )
-        draft = "_draft" if self.draft else ""
-        return Video(
-            flames,
-            dir_name,
-            video_file_name="_" + self.element.attrib["name"] + draft + ".mp4",
-            draft=self.draft,
-        )
+        return flames
 
     def __repr__(self):
         return ET.tostring(self.to_element()).decode()

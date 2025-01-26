@@ -1,3 +1,4 @@
+from __future__ import annotations
 import math
 import os
 import re
@@ -7,64 +8,92 @@ import xml.etree.ElementTree as ET
 from glob import glob
 from typing import List
 
-from tqdm import tqdm
-
+from fractals.flame import Flame
 from fractals.utils import logger
+import json
+import shutil
+from datetime import datetime
 
 
 class Video:
     def __init__(
         self,
-        flames,
-        directory: str,
+        flames: List[Flame],
         quality: int = 1000,
-        supersample: int = 2,
-        video_file_name: str = "animation.mp4",
+        super_sample: int = 2,
         draft: bool = False,
-        one_file_per_flame: bool = False,
-        seconds: int = 1200,  # 2 minutes
-        frames_per_second=30,  # reasonable
+        fps=60,  # reasonable
     ):
         self.flames = flames
-        self.directory = directory
-        self.flame_file_name = os.path.join(directory, "animation.flame")
-        self.video_file_name = os.path.join(directory, video_file_name)
-        self.one_file_per_flame = one_file_per_flame
-        self.seconds = seconds
-        self.frames_per_second = frames_per_second
+        if len(self.flames) == 0:
+            raise Exception("Empty flames!")
+        self.name = flames[0].element.attrib["name"][6:]
+        self.index = int(flames[0].element.attrib["name"][0:3])
+
+        self.fps = fps
 
         if draft:
             logger.info("DRAFT mode is on. Reduced image size and quality.")
             self.quality = 10
-            self.supersample = 0
+            self.super_sample = 0
+            time = datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
+            self.directory = f"{self.index:03d} - draft {time}"
         else:
             self.quality = quality
-            self.supersample = supersample
+            self.super_sample = super_sample
+            self.directory = f"{self.index:03d} - {self.name}"
 
-    def write_file(self):
         if not os.path.isdir(self.directory):
             os.makedirs(self.directory)
-        if self.one_file_per_flame:
-            for i, f in enumerate(self.flames):
-                fn = self.directory + f"/{i:05d}.flame"
-                if os.path.exists(fn):
-                    continue
-                root = ET.Element("flames")
-                root.append(f.to_element())
-                ET.ElementTree(root).write()
-        else:
-            root = ET.Element("flames")
-            for f in self.flames:
-                root.append(f.to_element())
-            logger.info(
-                "writing %d flames to animation file %s ",
-                len(self.flames),
-                self.flame_file_name,
-            )
-            ET.ElementTree(root).write(self.flame_file_name)
+
+    @classmethod
+    def from_animation(
+        cls, flame: Flame, total_frames: int, **kwargs
+    ) -> Video:
+        return Video(flames=flame.animate(total_frames), **kwargs)
+
+    @classmethod
+    def from_animated_flame_file(cls, animation_file: str, **kwargs) -> Video:
+        root = ET.parse(animation_file).getroot()
+        flames: List[Flame] = [Flame.from_element(el) for el in root]
+        return Video(flames=flames, **kwargs)
+
+    def join(self, name) -> str:
+        return os.path.join(self.directory, name)
+
+    @property
+    def flame_file(self) -> str:
+        return self.join("images/animation.flame")
+
+    @property
+    def final_video_file(self) -> str:
+        return self.join(f"final_{self.index:03d}.mp4")
+
+    @property
+    def preview_video_file(self) -> str:
+        return self.join(f"preview_{self.index:03d}.mp4")
+
+    @property
+    def image_directory(self):
+        return self.join("images")
+
+    def write_file(self):
+        root = ET.Element("flames")
+        for f in self.flames:
+            root.append(f.to_element())
+        logger.info(
+            "writing %d flames to animation file %s ",
+            len(self.flames),
+            self.flame_file,
+        )
+        ET.ElementTree(root).write(self.flame_file)
 
     def get_last_rendered_flame(self) -> int:
-        pngs = sorted(glob(self.directory + "/*.png"))
+        """
+        finds the last flame in the animation file for which there is a PNG
+        file.
+        """
+        pngs = sorted(glob(self.image_directory + "/*.png"))
         if not pngs:
             return 0
         last_png_name = os.path.basename(pngs[-1])
@@ -75,9 +104,7 @@ class Video:
             # check if last_flame_id is actually in the flame file
             for idx, f in enumerate(self.flames):
                 if int(f.element.attrib["time"]) == int(last_flame_id):
-                    return (
-                        idx + 1
-                    )  # the last found flame should not be rendered again
+                    return idx + 1
             logger.debug(
                 "did not find the last flame id (%s) in the names of flames in this animation",
                 last_flame_id,
@@ -91,88 +118,114 @@ class Video:
             )
         sys.exit(1)
 
-    def render(self, verbose: bool = False):
+    def deploy(self) -> None:
+        self.render_images()
+        self.render_movie()
+        self.render_preview()
+        self.copy_to_server()
+
+    def copy_to_server(self):
+        base_dir = "/home/benjamin/git/wallpaper-server/website"
+        index = f"{base_dir}/index.json"
+        with open(index) as idx_fh:
+            entries = json.load(idx_fh)
+        if self.index in [entry["id"] for entry in entries]:
+            logger.warn(
+                "did not copy files to server, entry for that index "
+                "already exists."
+            )
+            return
+        entries.append(
+            {
+                "id": self.index,
+                "previewUrl": os.path.basename(self.preview_video_file),
+                "finalUrl": os.path.basename(self.final_video_file),
+                "name": self.name,
+            }
+        )
+
+        with open(index, "w") as out_fh:
+            json.dump(
+                sorted(entries, key=lambda entry: entry["id"]),
+                out_fh,
+                indent=2,
+            )
+
+        shutil.copy2(self.preview_video_file, base_dir)
+        shutil.copy2(self.final_video_file, base_dir)
+
+    def render_images(self) -> None:
+        if not os.path.isdir(self.image_directory):
+            os.makedirs(self.image_directory)
         self.write_file()
 
-        if self.one_file_per_flame:
-            finished_pngs = sorted(glob(self.directory + "/*.png"))
-            yet_to_be_renderd = [
-                self.directory + f"/{i:05d}.flame"
-                for i in range(len(self.flames))
-                if self.directory + f"/{i:05d}.png" not in finished_pngs
-            ]
+        begin = self.get_last_rendered_flame()
+        if begin == len(self.flames) - 1:
+            logger.debug("skipping rendering, all pngs are there")
+            return
+        command = [
+            "emberanimate",
+            "--opencl",
+            "--in",
+            os.path.basename(self.flame_file),  # see cwd of Popen cmd below
+            "--begin",
+            str(begin),
+            "--quality",
+            str(self.quality),
+            "--supersample",
+            str(self.super_sample),
+        ]
 
-            logger.info(
-                "found %d files to be rendered.", len(yet_to_be_renderd)
+        logger.info("rendering flames of %s", self.flame_file)
+        logger.debug("command used for rendering: \n\n%s\n", " ".join(command))
+        sp.Popen(command, cwd=self.image_directory).communicate()
+
+    def render_movie(self) -> None:
+        pattern = (
+            self.image_directory
+            + r"/%0"
+            + str(
+                math.floor(math.log10(self.get_last_rendered_flame() + 1)) + 1
             )
-
-            for filename in tqdm(yet_to_be_renderd):
-                command = [
-                    "emberrender",
-                    "--opencl",
-                    "--in",
-                    filename,
-                    "--out",
-                    filename[:-5] + "png",
-                    "--quality",
-                    str(self.quality),
-                    "--supersample",
-                    str(self.supersample),
-                ]
-                sp.check_output(command)
-            logger.info("all done rendering pngs!")
-        else:
-            begin = self.get_last_rendered_flame()
-            if begin == len(self.flames) - 1:
-                logger.debug("skipping rendering, all pngs are there")
-                return
-            command = [
-                "emberanimate",
-                "--opencl",
-                "--in",
-                self.flame_file_name,
-                "--begin",
-                str(begin),
-                "--quality",
-                str(self.quality),
-                "--supersample",
-                str(self.supersample),
-            ]
-
-            logger.info("rendering flames of %s", self.flame_file_name)
-            logger.debug(
-                "command used for rendering: \n\n%s\n", " ".join(command)
-            )
-            sp.Popen(command).communicate()
-
-    def convert_to_movie(self):
-        if self.one_file_per_flame:
-            pattern = r"%05d.png"
-        else:
-            pattern = (
-                r"%0"
-                + str(
-                    math.floor(math.log10(self.get_last_rendered_flame())) + 1
-                )
-                + "d.png"
-            )
+            + "d.png"
+        )
         command = [
             "ffmpeg",
             "-framerate",
-            f"{self.frames_per_second}",  # this is needed once for input
+            f"{self.fps}",  # this is needed once for input
+            "-hwaccel",
+            "cuda",
+            "-hwaccel_output_format",
+            "cuda",
             "-i",
-            f"{os.path.join(self.directory, pattern)}",
-            "-i",
-            "logo/logo.png",
-            "-filter_complex",
-            "[1]format=rgba,colorchannelmixer=aa=0.2[logo];[0]["
-            "logo]overlay=W-w-20:H-h-20:format=auto,format=yuv420p,"
-            f"fps={self.frames_per_second}",
+            f"{pattern}",
             "-c:v",
-            "libx264",
-            "-crf",
-            "22",
-            self.video_file_name,
+            "h264_nvenc",
+            "-b:v",
+            "5M",
+            self.final_video_file,
         ]
-        logger.info("combining pngs to mp4 file: %s", self.video_file_name)
+        logger.info("combining pngs to mp4 file: %s", self.final_video_file)
+        sp.Popen(command).communicate()
+
+    def render_preview(self, crf=27) -> None:
+        command = [
+            "ffmpeg",
+            "-i",
+            f"{self.final_video_file}",
+            "-c:v",
+            "libx265",
+            "-filter:v",
+            "crop=1200:1200:0:400, scale=300:300",
+            "-ss",
+            "0",
+            "-t",  # only 5 seconds
+            "5",
+            "-crf",
+            f"{crf}",
+            "-r",  # reduce framerate to 30
+            "30",
+            self.preview_video_file,
+        ]
+        logger.info("rendering preview %s", f"{self.preview_video_file}")
         sp.Popen(command).communicate()

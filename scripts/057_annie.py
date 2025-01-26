@@ -1,53 +1,78 @@
+import math
+
 from fractals.flame import Flame
 from fractals.midi import MidiListener
-from fractals.transitions import make_transition, FunctionForm
-from fractals.xform import (
-    ScalingAnimation,
+from fractals.transitions import FunctionForm
+from fractals.animation import (
+    ScalingXformAnimation,
+    RotationXformAnimation,
+    OrbitXformAnimation,
     loop,
-    AttributeAnimation,
-    RotationAnimation,
 )
 
 flame = Flame.from_file("flames.flame", "057", draft=True)
 listener = MidiListener("./midi/Walz for Annie.mid")
+# n_frames = listener.get_max_frames()
+n_frames = 210
 
-scaling_kwargs = dict(
-    value_to=1.0,
-    transition=make_transition(FunctionForm.INVERSE_SIGMOID),
-)
-
-flame.xforms[0].animations = [
+flame.xform_animations = [
     *listener.iterate(
-        animation_class=ScalingAnimation,
+        xform_index=0,
+        animation_class=ScalingXformAnimation,
         filter_track_name="Snare Drum",
-        animation_length=15,
-        value_from=1.1,
-        **scaling_kwargs
-    )
-]
-flame.xforms[1].animations = [
+        animation_length=25,
+        value_from=1.05,
+        value_to=1.0,
+        method=FunctionForm.INVERSE_SIGMOID,
+    ),
     *listener.iterate(
-        animation_class=ScalingAnimation,
+        xform_index=1,
+        animation_class=ScalingXformAnimation,
         filter_track_name="Bass Drum",
-        animation_length=15,
-        value_from=1.3,
-        **scaling_kwargs
-    )
+        animation_length=35,
+        value_from=1.1,
+        value_to=1.0,
+        method=FunctionForm.INVERSE_SIGMOID,
+    ),
+    # *listener.loop(
+    #     xform_index=2,
+    #     animation_class=RotationAnimation,
+    #     filter_track_name="Piano",
+    #     amount=0.1,
+    #     animation_length=30,
+    #     method=FunctionForm.LINEAR,
+    # ),
+    # *loop(
+    #     OrbitAnimation,
+    #     xform_index=2,
+    #     method=FunctionForm.LINEAR,
+    #     animation_length=50,
+    #     total_frames=n_frames,
+    #     value_from=0.0,
+    #     value_to=1.0,
+    #     radius=0.05,
+    # ),
+    # *loop(
+    #     RotationAnimation,
+    #     xform_index=3,
+    #     method=FunctionForm.LINEAR,
+    #     animation_length=400,
+    #     total_frames=n_frames,
+    #     value_from=0.0,
+    #     value_to=1.0,
+    # ),
+    # *loop(
+    #     OrbitAnimation,
+    #     xform_index=3,
+    #     method=FunctionForm.LINEAR,
+    #     animation_length=180,
+    #     total_frames=n_frames,
+    #     value_from=0.0,
+    #     value_to=-1.0,
+    #     radius=0.15,
+    # ),
 ]
-flame.xforms[2].animations = [
-    *listener.loop(
-        animation_class=RotationAnimation,
-        filter_track_name="Piano",
-        amount=0.1,
-        animation_length=15,
-        transition=make_transition(FunctionForm.INVERSE_SIGMOID),
-    )
-]
-
-flames = flame.animate(total_frames=400)
-# flames = flame.animate(total_frames=listener.get_max_frames())
-
+flames = flame.animate(total_frames=n_frames)
 # flames.write_file()
-
 flames.render()
 flames.convert_to_movie()
